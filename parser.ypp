@@ -1,0 +1,590 @@
+%{
+
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <stdlib.h>
+#include <string>
+#include "source.hpp"
+#include "output.hpp"
+#include "parser.hpp"
+
+using namespace std;
+using namespace Parser;
+using namespace output;
+
+extern int yylineno;
+int yylex();
+void yyerror(char const * message);
+
+int precondCnt = 0;
+int whileLoopCnt = 0;
+string currentReturnType;
+
+bool isDevStage = false; // todo: change to false to turn off debugging cout's
+
+%}
+
+
+%token VOID INT BYTE B BOOL AND OR TRUE FALSE RETURN IF WHILE BREAK CONTINUE PRECOND SC COMMA LPAREN RPAREN LBRACE RBRACE RELOP BINOP ID NUM STRING ASSIGN END_OF_FILE
+
+/* Solving conflicts */
+// Exp rules related conflicts
+%right ASSIGN
+%left  OR //check if needs to be right assoc
+%left AND //check if needs to be right assoc
+%nonassoc RELOP
+%left BINOP
+%right NOT
+
+%nonassoc CONFLICT
+%nonassoc ELSE
+
+
+%%
+
+Program : M Funcs END_OF_FILE
+{
+    if (!checkMainFuncLegal())
+    {
+        errorMainMissing();
+        exit(0);
+    }
+
+    // end of global scope
+    if (isDevStage) {
+       cout << "DEBUG: end of global scope" << endl;
+    }
+    endScope();
+    closeScope(); // pop symbol & offset tables
+    return 0;
+
+
+
+}
+;
+
+M : %empty
+{
+    // start of global scope
+    if (isDevStage) {
+        cout << "DEBUG: start of global scope" << endl;
+    }
+	openGlobalScope();
+
+	// push print to global scope stack
+	pushFunctionDeclarationWithoutOpenScope("VOID", "print");
+
+	// push printi to global scope stack
+	pushFunctionDeclarationWithoutOpenScope("VOID", "printi");
+}
+;
+
+Funcs : %empty | FuncDecl Funcs //DONE! no need to change
+;
+
+FuncDecl : RetType ID LPAREN Formals RPAREN
+{
+	// check if id is free
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
+    string name = id->name;
+
+	if (!checkFuncIdFree(name) || !checkIdFree(name))
+	{
+	    errorDef(yylineno,name);
+	    exit(0);
+	}
+
+	// get parameters from input
+	string retType = $1->type;
+	MultiNameMultiTypeInfo* formals = dynamic_cast<MultiNameMultiTypeInfo*>($4);
+	vector<pair<string, string> > args = formals->types_names;
+
+	$$ = new FuncInfo(name,retType,args);
+
+	// push function to global scope symbol table and open new scope for arguments
+	pushFunctionDeclarationToStackAndOpenScope(retType, name, args);
+
+    // start of function scope starts here
+    if (isDevStage) {
+            cout << "DEBUG: start of function scope: " << name << endl;
+    }
+} PreConditions LBRACE Statements RBRACE {
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
+	string name = id->name;
+    currentReturnType = "";
+
+    endScope(); // print "end scope" message
+    printPreconditions(name, precondCnt); // print num of precondition
+	closeScope(); // pop symbol & offset tables
+
+    // end of function scope starts here
+    if (isDevStage) {
+        cout << "DEBUG: end of function scope: " << name << endl;
+    }
+}
+;
+
+RetType : Type {$$ = $1; currentReturnType = $1->type;} | VOID {$$ = new Type("VOID"); currentReturnType = "VOID";}
+;
+
+Formals : %empty
+{
+	$$ = new MultiNameMultiTypeInfo();
+}
+| FormalsList
+{
+	$$ = $1;
+}
+;
+
+FormalsList : FormalDecl
+{
+	NameTypeInfo* formalDec = dynamic_cast<NameTypeInfo*>($1);
+	vector<pair<string,string> > v;
+	v.push_back(pair<string,string>(formalDec->type, formalDec->name));
+
+	$$ = new MultiNameMultiTypeInfo(v);
+}
+| FormalDecl COMMA FormalsList
+{
+	MultiNameMultiTypeInfo* formalList = dynamic_cast<MultiNameMultiTypeInfo*>($3);
+	NameTypeInfo* formalDec = dynamic_cast<NameTypeInfo*>($1);
+	vector<pair<string,string> > v(formalList->types_names);
+	v.push_back(pair<string,string>(formalDec->type,formalDec->name));
+
+	$$ = new MultiNameMultiTypeInfo(v);
+}
+;
+
+FormalDecl : Type ID
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
+
+    // check id is free
+    if (!checkIdFree(id->name) || !checkFuncIdFree(id->name))
+    {
+        errorDef(yylineno,id->name);
+        exit(0);
+    }
+
+	$$ = new NameTypeInfo($1->type, id->name);
+}
+;
+
+PreConditions : %empty
+{
+	precondCnt = 0;
+}
+| PreConditions PreCondition
+{
+	precondCnt++;
+}
+;
+
+PreCondition : PRECOND LPAREN Exp RPAREN
+{
+	if (getExpType($3) != "BOOL") {
+	    errorMismatch(yylineno);
+	    exit(0);
+	}
+	$$ = $3;
+}
+;
+
+Statements : Statement | Statements Statement //DONE! no need to change
+;
+
+Statement : LBRACE {
+    // start of block scope
+    if (isDevStage) {
+        cout << "DEBUG: start of block scope" << endl;
+    }
+    openScope();
+} Statements {
+    // end of block scope
+    if (isDevStage) {
+        cout << "DEBUG: end of block scope" << endl;
+    }
+    endScope(); // print "end scope" message
+    closeScope();
+} RBRACE
+| Type ID SC
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
+    string name = id->name;
+
+    // check id is free
+    if (!checkIdFree(name) || !checkFuncIdFree(name))
+    {
+        errorDef(yylineno,name);
+        exit(0);
+    }
+
+	pushIdentifierToStack($1->type,id->name);
+}
+| Type ID ASSIGN Exp SC
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
+	string name = id->name;
+
+    // check id is free
+    if (!checkIdFree(name) || !checkFuncIdFree(name))
+    {
+        errorDef(yylineno,name);
+        exit(0);
+    }
+
+    if (!isValidAssigment($1, $4)) {
+        errorMismatch(yylineno);
+        exit(0);
+    }
+
+	pushIdentifierToStack($1->type,id->name);
+
+	//HW5:
+	string type = $1->type;
+	if (type == "BOOL") {
+	//TODO: later
+	}
+	else
+	{
+       // Push expression ($4) to stack; Allocate local variable
+       cf.emit("subu $sp, $sp, 4");
+       cf.emit("sw $" + to_string($4->reg) + ", 0($sp)");
+       setRegister($4->reg,true); // Free exp register
+	}
+}
+| ID ASSIGN Exp SC
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($1);
+    string name = id->name;
+
+    // check id is defined
+    if (checkIdFree(name))
+    {
+        errorUndef(yylineno,name);
+        exit(0);
+    }
+
+    if (!isValidAssigment($1, $3)) {
+        errorMismatch(yylineno);
+        exit(0);
+    }
+}
+| Call SC
+{
+    $$ = $1;
+}
+| RETURN SC 
+{
+	if (currentReturnType!="VOID")
+	{
+		errorMismatch(yylineno);
+		exit(0);
+	}
+}
+| RETURN Exp SC 
+{
+    if (currentReturnType!="INT" && currentReturnType != "BYTE" && currentReturnType != "BOOL")
+    {
+        errorMismatch(yylineno);
+        exit(0);
+    }
+    if (!isValidReturn(currentReturnType,$2))
+    {
+        errorMismatch(yylineno);
+    		exit(0);
+    }
+
+    //HW5:
+    string type = getExpType($2);
+    if (type == "BOOL")
+    {
+    //TODO: later
+    }
+    else
+    {
+        // Clear local variables
+        cf.emit("add $v0, $" + to_string($2->reg) + ", 0");
+        //TODO: empty_func_stack();
+        cf.emit("jr $ra");
+    }
+
+    clearTempRegisters();
+}
+| WHILE LPAREN Exp RPAREN {
+	whileLoopCnt++;
+	if (getExpType($3) != "BOOL")
+	{
+		errorMismatch(yylineno);
+		exit(0);
+	}
+	openScope();
+} Statement
+{
+	whileLoopCnt--;
+	endScope();
+	closeScope();
+}
+| BREAK SC 
+{
+	if (whileLoopCnt == 0)
+	{
+		errorUnexpectedBreak(yylineno);
+		exit(0);
+	}
+}
+| CONTINUE SC 
+{
+	if (whileLoopCnt == 0)
+	{
+		errorUnexpectedContinue(yylineno);
+		exit(0);
+	}
+}
+| IF LPAREN Exp RPAREN {
+    if (isDevStage) {
+        cout << "DEBUG: start of if scope" << endl;
+    }
+
+    if (getExpType($3) != "BOOL") {
+        errorMismatch(yylineno);
+        exit(0);
+    }
+
+    openScope();
+} SelectionStatement
+;
+
+SelectionStatement: Statement
+{
+    if (isDevStage) {
+        cout << "DEBUG: end of if scope" << endl;
+    }
+    endScope(); // print "end scope" message
+    closeScope();
+} %prec CONFLICT
+| Statement ELSE
+{
+    if (isDevStage) {
+        cout << "DEBUG: end of if scope (with ELSE)" << endl;
+    }
+
+    endScope(); // print "end scope" message
+    closeScope();
+    openScope();
+} Statement {endScope(); closeScope();}
+;
+
+Call : ID LPAREN ExpList RPAREN
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($1);
+    string name = id->name;
+
+	// check if id is undefined
+    if (checkFuncIdFree(name))
+    {
+        errorUndefFunc(yylineno,name);
+        exit(0);
+    }
+
+    // check if arguments for function are correct
+    NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>($3);
+    vector<string> exp_args_types = expList->types;
+
+    if (!checkPrototypeOfFunction(name,exp_args_types))
+    {
+        vector<string> args = getArgumentTypesOfFunc(name);
+        errorPrototypeMismatch(yylineno,name,args);
+        exit(0);
+    }
+
+    $$ = new Type(getExpFuncReturnType($1));
+}
+| ID LPAREN RPAREN
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($1);
+    string name = id->name;
+
+	// check if id is undefined
+    if (checkFuncIdFree(name))
+    {
+        errorUndefFunc(yylineno,name);
+        exit(0);
+    }
+
+    // check if arguments for function are correct
+    vector<string> args_types; //empty vector because function doesn't have any arguments
+    if (!checkPrototypeOfFunction(name,args_types))
+    {
+        vector<string> args = getArgumentTypesOfFunc(name);
+        errorPrototypeMismatch(yylineno,name,args);
+        exit(0);
+    }
+
+    $$ = new Type(getExpFuncReturnType($1));
+}
+;
+
+ExpList : Exp
+{
+	$$ = new NameMultiTypeInfo(getExpType($1));
+}
+| Exp COMMA ExpList
+{
+	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>($3);
+	vector<string> types = expList->types;
+	string type = getExpType($1);
+	types.push_back(type);
+
+	$$ = new NameMultiTypeInfo(types);
+}
+;
+
+Type : INT {$$ = new Type("INT");} | BYTE {$$ = new Type("BYTE");} | BOOL {$$ = new Type("BOOL");}
+;
+
+Exp : LPAREN Exp RPAREN
+{
+	$$ = $2;
+}
+| Exp BINOP Exp
+{
+	if (!isValidBinOp($1, $3)) {
+	    errorMismatch(yylineno);
+	    exit(0);
+	}
+
+	$$ = new Type(getExpType($1));
+
+	NameTypeInfo* binop = dynamic_cast<NameTypeInfo*>($2);
+	string op = binop->name;
+
+	switch (op)
+	{
+	    case "*" : cmd = "mul "; break;
+	    case "/" : //TODO: check for division by zero
+	                cmd = "div "; break;
+	    case "+" : cmd = "addu "; break;
+	    case "-" : cmd = "subu "; break;
+	}
+
+    // addu $1,$1,$2 , puts result of addu into $1
+    cf.emit(cmd + "$" + to_string($1->reg) + ", $" + to_string($1->reg) + ", $" + to_string($3->reg));
+    //set register of 2nd operand as available
+    setRegister($3->reg,true);
+
+    //TODO: if (result_type=="BYTE")
+
+    $$->reg = $1->reg;
+}
+| ID
+{
+	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($1);
+	string name = id->name;
+	if (checkIdFree(name))
+	{
+	    errorUndef(yylineno,name);
+	    exit(0);
+	}
+	//$$ = $1;
+	$$ = new Type(getExpType($1));
+
+    // HW5:
+    //allocating new register for local variable
+    int reg = getAvailableRegister();
+    setRegister(reg,false);
+    SymbolTableEntry* e=getIdEntry(name,false);
+    cf.emit("lw $" + to_string(reg) + ", " + to_string((-4)*(e->offset)) + "($fp)");
+
+    //TODO: if (info->type == "BOOL")
+    $$->reg = reg;
+}
+| Call
+{
+	$$ = new Type(getExpType($1));
+}
+| NUM
+{
+	$$ = $1;
+
+    // HW5:
+    NameTypeInfo* num = dynamic_cast<NameTypeInfo*>($1);
+    int reg = getAvailableRegister();
+    $$->reg = reg;
+    setRegister(reg,false);
+    // Save NUM's value to register
+    cf.emit("li $" + to_string(reg) + ", " + num->name);
+}
+| NUM B
+{
+	NameTypeInfo* numId = dynamic_cast<NameTypeInfo*>($1);
+	int num = atoi(numId->name.c_str());
+
+	if (num > 255)
+	{
+		errorByteTooLarge(yylineno,numId->name);
+		exit(0);
+	}
+
+	$$ = new Type("BYTE");
+
+    // HW5:
+    NameTypeInfo* num = dynamic_cast<NameTypeInfo*>($1);
+    int reg = getAvailableRegister();
+    $$->reg = reg;
+    setRegister(reg,false);
+    cf.emit("li $" + to_string(reg) + ", " + num->name);
+}
+| STRING
+{
+	$$ = new Type("STRING");
+}
+| TRUE
+{
+	$$ = new Type("BOOL");
+}
+| FALSE
+{
+	$$ = new Type("BOOL");
+}
+| NOT Exp
+{
+	checkExpressionType($2,"BOOL",yylineno);
+	$$ = new Type("BOOL");
+}
+| Exp AND Exp
+{
+	checkExpressionType($1,"BOOL",yylineno);
+	checkExpressionType($3,"BOOL",yylineno);
+	$$ = new Type("BOOL");
+}
+| Exp OR Exp
+{
+	checkExpressionType($1,"BOOL",yylineno);
+	checkExpressionType($3,"BOOL",yylineno);
+	$$ = new Type("BOOL");
+}
+| Exp RELOP Exp
+{
+    string type_right_exp = getExpType($3);
+    string type_left_exp = getExpType($1);
+ 	if (type_right_exp!="INT" && type_right_exp!="BYTE") {errorMismatch(yylineno); exit(0);}
+	if (type_left_exp!="INT" && type_left_exp!="BYTE") {errorMismatch(yylineno); exit(0);}
+	$$ = new Type("BOOL");
+}
+;
+
+%%
+
+void yyerror(const char * message)
+{
+	errorSyn(yylineno);
+	exit(0);
+}
+
+
+int main() {
+	yyparse();
+}
