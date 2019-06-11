@@ -16,8 +16,6 @@ stack<int> *offsets_stack = new stack<int>();
 
 // HW5 Global Variables:
 vector<bool> available_regs;
-CodeBuffer &cf = CodeBuffer::instance();
-
 
 void Parser::openGlobalScope() {
     // create symbol table for global scope

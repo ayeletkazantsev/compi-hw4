@@ -50,9 +50,12 @@ struct MultiNameTypeInfo : public Type { // list of token names
 
 struct NameMultiTypeInfo : public Type {
     vector<string> types;
+    vector<int> places; // added for HW5
 
+    NameMultiTypeInfo(string type, int place) {types.push_back(type); places.push_back(place);}
     NameMultiTypeInfo(string type) {types.push_back(type);}
     NameMultiTypeInfo(vector<string> types) : types(types) {}
+    NameMultiTypeInfo(vector<string> types, vector<int> places) : types(types), places(places) {}
 };
 
 struct MultiNameMultiTypeInfo : public Type{ //list of token types and names

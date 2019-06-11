@@ -8,6 +8,7 @@
 #include "source.hpp"
 #include "output.hpp"
 #include "parser.hpp"
+#include "bp.cpp"
 
 using namespace std;
 using namespace Parser;
@@ -22,6 +23,8 @@ int whileLoopCnt = 0;
 string currentReturnType;
 
 bool isDevStage = false; // todo: change to false to turn off debugging cout's
+
+CodeBuffer &cf = CodeBuffer::instance();
 
 %}
 
@@ -82,20 +85,20 @@ M : %empty
 	initRegisters();
 
     // print
-    code.emit("print_:");
-    code.emit("lw $a0, 0($sp)");
-    code.emit("li $v0, 4");
-    code.emit("syscall");
-    code.emit("addu $sp, $sp, 4");
-    code.emit("jr $ra");
+    cf.emit("print_:");
+    cf.emit("lw $a0, 0($sp)");
+    cf.emit("li $v0, 4");
+    cf.emit("syscall");
+    cf.emit("addu $sp, $sp, 4");
+    cf.emit("jr $ra");
 
     // printi
-    code.emit("printi_:");
-    code.emit("lw $a0, 0($sp)");
-    code.emit("li $v0, 1");
-    code.emit("syscall");
-    code.emit("addu $sp, $sp, 4");
-    code.emit("jr $ra");
+    cf.emit("printi_:");
+    cf.emit("lw $a0, 0($sp)");
+    cf.emit("li $v0, 1");
+    cf.emit("syscall");
+    cf.emit("addu $sp, $sp, 4");
+    cf.emit("jr $ra");
 
     //todo add emitData div_zero_error
 }
@@ -130,6 +133,13 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     if (isDevStage) {
             cout << "DEBUG: start of function scope: " << name << endl;
     }
+
+    //HW5
+    if (name == "main") {
+        cf.emit("main:");
+        cf.emit("subu $fp, $sp, 4");
+    }
+    else cf.emit(name + "_:");
 } PreConditions LBRACE Statements RBRACE {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
 	string name = id->name;
@@ -143,6 +153,10 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     if (isDevStage) {
         cout << "DEBUG: end of function scope: " << name << endl;
     }
+
+    //HW5
+    clearTempRegisters();
+    cf.emit("jr $ra");
 }
 ;
 
@@ -422,6 +436,31 @@ Call : ID LPAREN ExpList RPAREN
     }
 
     $$ = new Type(getExpFuncReturnType($1));
+
+    //HW5
+    //todo backup used registers
+
+    //Push $fp and $ra to stack
+    cf.emit("subu $sp, $sp, 4");
+    cf.emit("sw $fp, ($sp)");
+    cf.emit("subu $sp, $sp, 4");
+    cf.emit("sw $ra, ($sp)");
+
+    //Push function's arguments on stack
+    cout << "test: " << expList->places[0] << endl;
+    cf.emit("subu $sp, $sp, 4");
+    cf.emit("sw $" + to_string($2->reg) + ", ($sp)");
+    setRegister($2->reg,true);
+
+    clearTempRegisters();
+    if (name == "main") {
+        cf.emit("jal main");
+    }
+    else {
+        cf.emit("jal _" + name);
+    }
+
+
 }
 | ID LPAREN RPAREN
 {
@@ -450,14 +489,20 @@ Call : ID LPAREN ExpList RPAREN
 
 ExpList : Exp
 {
-	$$ = new NameMultiTypeInfo(getExpType($1));
+    int place = getAvailableRegister();
+    setRegister(place, false);
+	$$ = new NameMultiTypeInfo(getExpType($1), place);
 }
 | Exp COMMA ExpList
 {
 	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>($3);
 	vector<string> types = expList->types;
+	vector<int> places = expList->places;
 	string type = getExpType($1);
+    int place = getAvailableRegister();
+    setRegister(place, false);
 	types.push_back(type);
+	places.push_back(place);
 
 	$$ = new NameMultiTypeInfo(types);
 }
@@ -482,17 +527,25 @@ Exp : LPAREN Exp RPAREN
 	NameTypeInfo* binop = dynamic_cast<NameTypeInfo*>($2);
 	string op = binop->name;
 
-	switch (op)
-	{
-	    case "*" : cmd = "mul "; break;
-	    case "/" : //TODO: check for division by zero
-	                cmd = "div "; break;
-	    case "+" : cmd = "addu "; break;
-	    case "-" : cmd = "subu "; break;
-	}
+    string cmd;
 
-    // addu $1,$1,$2 , puts result of addu into $1
+    if (op == "*") {
+        cmd = "mul ";
+    }
+    else if(op == "/") { //TODO: check for division by zero
+        cmd = "div ";
+    }
+    else if(op == "+") {
+        cmd = "addu ";
+    }
+    else if(op == "-") {
+        cmd = "subu "; break;
+    }
+
+
+    // e.g.: addu $1,$1,$2 , puts result of addu into $1
     cf.emit(cmd + "$" + to_string($1->reg) + ", $" + to_string($1->reg) + ", $" + to_string($3->reg));
+
     //set register of 2nd operand as available
     setRegister($3->reg,true);
 
@@ -552,11 +605,10 @@ Exp : LPAREN Exp RPAREN
 	$$ = new Type("BYTE");
 
     // HW5:
-    NameTypeInfo* num = dynamic_cast<NameTypeInfo*>($1);
     int reg = getAvailableRegister();
     $$->reg = reg;
     setRegister(reg,false);
-    cf.emit("li $" + to_string(reg) + ", " + num->name);
+    cf.emit("li $" + to_string(reg) + ", " + numId->name);
 }
 | STRING
 {
@@ -608,4 +660,8 @@ void yyerror(const char * message)
 
 int main() {
 	yyparse();
+
+	//HW5
+    cf.printDataBuffer();
+    cf.printCodeBuffer();
 }
