@@ -77,6 +77,27 @@ M : %empty
 
 	// push printi to global scope stack
 	pushFunctionDeclarationWithoutOpenScope("VOID", "printi");
+
+	// HW5
+	initRegisters();
+
+    // print
+    code.emit("print_:");
+    code.emit("lw $a0, 0($sp)");
+    code.emit("li $v0, 4");
+    code.emit("syscall");
+    code.emit("addu $sp, $sp, 4");
+    code.emit("jr $ra");
+
+    // printi
+    code.emit("printi_:");
+    code.emit("lw $a0, 0($sp)");
+    code.emit("li $v0, 1");
+    code.emit("syscall");
+    code.emit("addu $sp, $sp, 4");
+    code.emit("jr $ra");
+
+    //todo add emitData div_zero_error
 }
 ;
 
