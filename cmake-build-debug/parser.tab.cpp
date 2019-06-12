@@ -481,11 +481,11 @@ static const yytype_uint16 yyrline[] =
 {
        0,    51,    51,    70,   113,   129,   129,   133,   132,   188,
      188,   191,   195,   201,   209,   220,   235,   241,   249,   261,
-     266,   265,   280,   286,   280,   300,   319,   361,   399,   408,
-     416,   452,   452,   468,   480,   492,   492,   506,   515,   514,
-     526,   578,   652,   678,   677,   718,   718,   718,   721,   725,
-     758,   787,   791,   803,   822,   834,   841,   848,   857,   868,
-     879
+     266,   265,   279,   285,   279,   299,   318,   360,   398,   407,
+     415,   451,   451,   467,   479,   491,   491,   505,   514,   513,
+     525,   577,   651,   677,   676,   717,   717,   717,   720,   724,
+     757,   786,   790,   802,   821,   833,   840,   847,   856,   867,
+     878
 };
 #endif
 
@@ -1403,7 +1403,7 @@ yyreduce:
   case 4:
 #line 114 "parser.ypp" /* yacc.c:1646  */
     {
-    (yyval) = new Type("Label");
+    (yyval) = new Type();
 	(yyval)->label = cf.genLabel();
 }
 #line 1410 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
@@ -1455,7 +1455,7 @@ yyreduce:
     currentReturnType = "";
 
     // HW5:
-    cf.bpatch((yyvsp[-2])->next_list,cf.genLabel());
+    cf.bpatch((yyvsp[-2])->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -1595,7 +1595,7 @@ yyreduce:
     break;
 
   case 21:
-#line 271 "parser.ypp" /* yacc.c:1646  */
+#line 270 "parser.ypp" /* yacc.c:1646  */
     {
     (yyval) = (yyvsp[-2]);
     //todo check if this is correct
@@ -1607,7 +1607,7 @@ yyreduce:
     break;
 
   case 22:
-#line 280 "parser.ypp" /* yacc.c:1646  */
+#line 279 "parser.ypp" /* yacc.c:1646  */
     {
     // start of block scope
     if (isDevStage) {
@@ -1619,7 +1619,7 @@ yyreduce:
     break;
 
   case 23:
-#line 286 "parser.ypp" /* yacc.c:1646  */
+#line 285 "parser.ypp" /* yacc.c:1646  */
     {
     // end of block scope
     if (isDevStage) {
@@ -1630,7 +1630,7 @@ yyreduce:
 
     // HW5:
     cf.bpatch((yyvsp[-2])->next_list,(yyvsp[-1])->label);
-    (yyval) = (yyvsp[-1]);
+    (yyval) = (yyvsp[-2]);
     (yyval)->next_list = vector<int>();
 
 }
@@ -1638,7 +1638,7 @@ yyreduce:
     break;
 
   case 25:
-#line 301 "parser.ypp" /* yacc.c:1646  */
+#line 300 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-1]));
     string name = id->name;
@@ -1661,7 +1661,7 @@ yyreduce:
     break;
 
   case 26:
-#line 320 "parser.ypp" /* yacc.c:1646  */
+#line 319 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
 	string name = id->name;
@@ -1707,7 +1707,7 @@ yyreduce:
     break;
 
   case 27:
-#line 362 "parser.ypp" /* yacc.c:1646  */
+#line 361 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
     string name = id->name;
@@ -1749,7 +1749,7 @@ yyreduce:
     break;
 
   case 28:
-#line 400 "parser.ypp" /* yacc.c:1646  */
+#line 399 "parser.ypp" /* yacc.c:1646  */
     {
     (yyval) = (yyvsp[-1]);
 
@@ -1762,7 +1762,7 @@ yyreduce:
     break;
 
   case 29:
-#line 409 "parser.ypp" /* yacc.c:1646  */
+#line 408 "parser.ypp" /* yacc.c:1646  */
     {
 	if (currentReturnType!="VOID")
 	{
@@ -1774,7 +1774,7 @@ yyreduce:
     break;
 
   case 30:
-#line 417 "parser.ypp" /* yacc.c:1646  */
+#line 416 "parser.ypp" /* yacc.c:1646  */
     {
     if (currentReturnType!="INT" && currentReturnType != "BYTE" && currentReturnType != "BOOL")
     {
@@ -1814,7 +1814,7 @@ yyreduce:
     break;
 
   case 31:
-#line 452 "parser.ypp" /* yacc.c:1646  */
+#line 451 "parser.ypp" /* yacc.c:1646  */
     {
 	whileLoopCnt++;
 	if (getExpType((yyvsp[-1])) != "BOOL")
@@ -1828,7 +1828,7 @@ yyreduce:
     break;
 
   case 32:
-#line 461 "parser.ypp" /* yacc.c:1646  */
+#line 460 "parser.ypp" /* yacc.c:1646  */
     {
 	whileLoopCnt--;
 	endScope();
@@ -1840,7 +1840,7 @@ yyreduce:
     break;
 
   case 33:
-#line 469 "parser.ypp" /* yacc.c:1646  */
+#line 468 "parser.ypp" /* yacc.c:1646  */
     {
 	if (whileLoopCnt == 0)
 	{
@@ -1856,7 +1856,7 @@ yyreduce:
     break;
 
   case 34:
-#line 481 "parser.ypp" /* yacc.c:1646  */
+#line 480 "parser.ypp" /* yacc.c:1646  */
     {
 	//todo: hw5 while table?
 	if (whileLoopCnt == 0)
@@ -1872,7 +1872,7 @@ yyreduce:
     break;
 
   case 35:
-#line 492 "parser.ypp" /* yacc.c:1646  */
+#line 491 "parser.ypp" /* yacc.c:1646  */
     {
     if (isDevStage) {
         cout << "DEBUG: start of if scope" << endl;
@@ -1889,7 +1889,7 @@ yyreduce:
     break;
 
   case 37:
-#line 507 "parser.ypp" /* yacc.c:1646  */
+#line 506 "parser.ypp" /* yacc.c:1646  */
     {
     if (isDevStage) {
         cout << "DEBUG: end of if scope" << endl;
@@ -1901,7 +1901,7 @@ yyreduce:
     break;
 
   case 38:
-#line 515 "parser.ypp" /* yacc.c:1646  */
+#line 514 "parser.ypp" /* yacc.c:1646  */
     {
     if (isDevStage) {
         cout << "DEBUG: end of if scope (with ELSE)" << endl;
@@ -1915,13 +1915,13 @@ yyreduce:
     break;
 
   case 39:
-#line 523 "parser.ypp" /* yacc.c:1646  */
+#line 522 "parser.ypp" /* yacc.c:1646  */
     {endScope(); closeScope();}
 #line 1921 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 527 "parser.ypp" /* yacc.c:1646  */
+#line 526 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
     string name = id->name;
@@ -1977,7 +1977,7 @@ yyreduce:
     break;
 
   case 41:
-#line 579 "parser.ypp" /* yacc.c:1646  */
+#line 578 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-2]));
     string name = id->name;
@@ -2053,7 +2053,7 @@ yyreduce:
     break;
 
   case 42:
-#line 653 "parser.ypp" /* yacc.c:1646  */
+#line 652 "parser.ypp" /* yacc.c:1646  */
     {
     // HW5:
     string expType = getExpType((yyvsp[0]));
@@ -2082,7 +2082,7 @@ yyreduce:
     break;
 
   case 43:
-#line 678 "parser.ypp" /* yacc.c:1646  */
+#line 677 "parser.ypp" /* yacc.c:1646  */
     {
     // HW5:
     string expType = getExpType((yyvsp[0]));
@@ -2111,7 +2111,7 @@ yyreduce:
     break;
 
   case 44:
-#line 703 "parser.ypp" /* yacc.c:1646  */
+#line 702 "parser.ypp" /* yacc.c:1646  */
     {
 	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>((yyvsp[-1]));
 	vector<string> types = expList->types;
@@ -2129,25 +2129,25 @@ yyreduce:
     break;
 
   case 45:
-#line 718 "parser.ypp" /* yacc.c:1646  */
+#line 717 "parser.ypp" /* yacc.c:1646  */
     {(yyval) = new Type("INT");}
 #line 2135 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 718 "parser.ypp" /* yacc.c:1646  */
+#line 717 "parser.ypp" /* yacc.c:1646  */
     {(yyval) = new Type("BYTE");}
 #line 2141 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 718 "parser.ypp" /* yacc.c:1646  */
+#line 717 "parser.ypp" /* yacc.c:1646  */
     {(yyval) = new Type("BOOL");}
 #line 2147 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 722 "parser.ypp" /* yacc.c:1646  */
+#line 721 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = (yyvsp[-1]);
 }
@@ -2155,7 +2155,7 @@ yyreduce:
     break;
 
   case 49:
-#line 726 "parser.ypp" /* yacc.c:1646  */
+#line 725 "parser.ypp" /* yacc.c:1646  */
     {
 	if (!isValidBinOp((yyvsp[-2]), (yyvsp[0]))) {
 	    errorMismatch(yylineno);
@@ -2192,7 +2192,7 @@ yyreduce:
     break;
 
   case 50:
-#line 759 "parser.ypp" /* yacc.c:1646  */
+#line 758 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[0]));
 	string name = id->name;
@@ -2225,7 +2225,7 @@ yyreduce:
     break;
 
   case 51:
-#line 788 "parser.ypp" /* yacc.c:1646  */
+#line 787 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type(getExpType((yyvsp[0])));
 }
@@ -2233,7 +2233,7 @@ yyreduce:
     break;
 
   case 52:
-#line 792 "parser.ypp" /* yacc.c:1646  */
+#line 791 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = (yyvsp[0]);
 
@@ -2249,7 +2249,7 @@ yyreduce:
     break;
 
   case 53:
-#line 804 "parser.ypp" /* yacc.c:1646  */
+#line 803 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* numId = dynamic_cast<NameTypeInfo*>((yyvsp[-1]));
 	int num = atoi(numId->name.c_str());
@@ -2272,7 +2272,7 @@ yyreduce:
     break;
 
   case 54:
-#line 823 "parser.ypp" /* yacc.c:1646  */
+#line 822 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type("STRING");
 
@@ -2288,7 +2288,7 @@ yyreduce:
     break;
 
   case 55:
-#line 835 "parser.ypp" /* yacc.c:1646  */
+#line 834 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type("BOOL");
 
@@ -2299,7 +2299,7 @@ yyreduce:
     break;
 
   case 56:
-#line 842 "parser.ypp" /* yacc.c:1646  */
+#line 841 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type("BOOL");
 
@@ -2310,7 +2310,7 @@ yyreduce:
     break;
 
   case 57:
-#line 849 "parser.ypp" /* yacc.c:1646  */
+#line 848 "parser.ypp" /* yacc.c:1646  */
     {
 	checkExpressionType((yyvsp[0]),"BOOL",yylineno);
 	(yyval) = new Type("BOOL");
@@ -2323,7 +2323,7 @@ yyreduce:
     break;
 
   case 58:
-#line 858 "parser.ypp" /* yacc.c:1646  */
+#line 857 "parser.ypp" /* yacc.c:1646  */
     {
 	checkExpressionType((yyvsp[-3]),"BOOL",yylineno);
 	checkExpressionType((yyvsp[-1]),"BOOL",yylineno);
@@ -2338,7 +2338,7 @@ yyreduce:
     break;
 
   case 59:
-#line 869 "parser.ypp" /* yacc.c:1646  */
+#line 868 "parser.ypp" /* yacc.c:1646  */
     {
 	checkExpressionType((yyvsp[-3]),"BOOL",yylineno);
 	checkExpressionType((yyvsp[-1]),"BOOL",yylineno);
@@ -2353,7 +2353,7 @@ yyreduce:
     break;
 
   case 60:
-#line 880 "parser.ypp" /* yacc.c:1646  */
+#line 879 "parser.ypp" /* yacc.c:1646  */
     {
     string type_right_exp = getExpType((yyvsp[0]));
     string type_left_exp = getExpType((yyvsp[-2]));
@@ -2611,7 +2611,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 907 "parser.ypp" /* yacc.c:1906  */
+#line 906 "parser.ypp" /* yacc.c:1906  */
 
 
 void yyerror(const char * message)

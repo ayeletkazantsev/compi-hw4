@@ -112,13 +112,13 @@ M : %empty
 
 NewLabel : %empty
 {
-    $$ = new Type("Label");
+    $$ = new Type();
 	$$->label = cf.genLabel();
 }
 
 NewNextList : %empty
 {
-    $$ = new Node("NextList");
+    $$ = new Type();
     $$->next_list = cf.makelist(cf.emit("j  "));
 }
 ;
@@ -168,7 +168,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     currentReturnType = "";
 
     // HW5:
-    cf.bpatch($8->next_list,cf.genLabel());
+    cf.bpatch($8->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -266,8 +266,7 @@ Statements : Statement
 {
     if ($1->next_list.size() > 0)
         cf.bpatch($1->next_list,cf.genLabel());
-}
-Statement
+} Statement
 {
     $$ = $1;
     //todo check if this is correct
@@ -293,7 +292,7 @@ Statement : LBRACE {
 
     // HW5:
     cf.bpatch($2->next_list,$3->label);
-    $$ = $3;
+    $$ = $2;
     $$->next_list = vector<int>();
 
 } RBRACE
