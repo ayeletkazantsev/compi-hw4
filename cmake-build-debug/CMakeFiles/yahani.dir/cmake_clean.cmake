@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "lexer.cpp"
   "CMakeFiles/yahani.dir/parser.tab.cpp.o"
   "CMakeFiles/yahani.dir/lexer.cpp.o"
+  "CMakeFiles/yahani.dir/bp.cpp.o"
   "CMakeFiles/yahani.dir/parser.cpp.o"
   "CMakeFiles/yahani.dir/output.cpp.o"
   "yahani.pdb"

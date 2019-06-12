@@ -8,7 +8,7 @@
 #include "source.hpp"
 #include "output.hpp"
 #include "parser.hpp"
-#include "bp.cpp"
+#include "bp.hpp"
 
 using namespace std;
 using namespace Parser;
@@ -24,6 +24,8 @@ string currentReturnType;
 
 bool isDevStage = false; // todo: change to false to turn off debugging cout's
 
+//HW5:
+int stringCnt = 0;
 CodeBuffer &cf = CodeBuffer::instance();
 
 %}
@@ -62,8 +64,6 @@ Program : M Funcs END_OF_FILE
     closeScope(); // pop symbol & offset tables
     return 0;
 
-
-
 }
 ;
 
@@ -100,8 +100,30 @@ M : %empty
     cf.emit("addu $sp, $sp, 4");
     cf.emit("jr $ra");
 
-    //todo add emitData div_zero_error
+    cf.emitData("div_zero_error: .asciiz \"Error division by zero\\n\"");
+    cf.emit("div_zero :");
+    cf.emit("la $a0, div_zero_error");
+    cf.emit("li $v0, 4"); // Syscall to print
+    cf.emit("syscall");
+    cf.emit("li $v0, 10"); // Syscall to terminate
+    cf.emit("syscall");
 }
+;
+
+NewLabel : %empty
+{
+    $$ = new Type("Label");
+	$$->label = cf.genLabel();
+}
+
+NewNextList : %empty
+{
+    $$ = new Node("NextList");
+    $$->next_list = cf.makelist(cf.emit("j  "));
+}
+;
+
+NewWhile : %empty
 ;
 
 Funcs : %empty | FuncDecl Funcs //DONE! no need to change
@@ -134,7 +156,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
             cout << "DEBUG: start of function scope: " << name << endl;
     }
 
-    //HW5
+    // HW5:
     if (name == "main") {
         cf.emit("main:");
         cf.emit("subu $fp, $sp, 4");
@@ -144,6 +166,9 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
 	string name = id->name;
     currentReturnType = "";
+
+    // HW5:
+    cf.bpatch($8->next_list,cf.genLabel());
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -210,10 +235,14 @@ FormalDecl : Type ID
 PreConditions : %empty
 {
 	precondCnt = 0;
+
+	//todo: hw5
 }
 | PreConditions PreCondition
 {
 	precondCnt++;
+
+	//todo: hw5
 }
 ;
 
@@ -224,10 +253,28 @@ PreCondition : PRECOND LPAREN Exp RPAREN
 	    exit(0);
 	}
 	$$ = $3;
+
+	//todo: hw5
 }
 ;
 
-Statements : Statement | Statements Statement //DONE! no need to change
+Statements : Statement
+{
+    $$ = $1;
+}
+| Statements
+{
+    if ($1->next_list.size() > 0)
+        cf.bpatch($1->next_list,cf.genLabel());
+}
+Statement
+{
+    $$ = $1;
+    //todo check if this is correct
+    $$->next_list = $2->next_list;
+    $$->break_list = cf.merge($1->break_list,$2->break_list);
+    $$->continue_list = cf.merge($1->continue_list,$2->continue_list);
+}
 ;
 
 Statement : LBRACE {
@@ -236,13 +283,19 @@ Statement : LBRACE {
         cout << "DEBUG: start of block scope" << endl;
     }
     openScope();
-} Statements {
+} Statements NewLabel {
     // end of block scope
     if (isDevStage) {
         cout << "DEBUG: end of block scope" << endl;
     }
     endScope(); // print "end scope" message
     closeScope();
+
+    // HW5:
+    cf.bpatch($2->next_list,$3->label);
+    $$ = $3;
+    $$->next_list = vector<int>();
+
 } RBRACE
 | Type ID SC
 {
@@ -257,6 +310,11 @@ Statement : LBRACE {
     }
 
 	pushIdentifierToStack($1->type,id->name);
+
+	// HW5:
+	//todo: hw5 new node?
+    cf.emit("subu $sp, $sp, 4"); // Move stack pointer
+    cf.emit("sw $0, 0($sp)"); // Initialize to zero
 }
 | Type ID ASSIGN Exp SC
 {
@@ -280,7 +338,17 @@ Statement : LBRACE {
 	//HW5:
 	string type = $1->type;
 	if (type == "BOOL") {
-	//TODO: later
+	    int reg = getAvailableRegister();
+	    setRegister(reg,false);
+        cf.bpatch($4->true_list,cf.genLabel());
+        cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
+        cf.emit("li $" + to_string(reg) + ", 1");
+        cf.emit("sw $"+ to_string(reg) +", 0($sp)");
+        setRegister(reg,true);
+        $$->next_list = cf.makelist(cf.emit("j  "));
+        cf.bpatch($4->false_list,cf.genLabel());
+        cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
+        cf.emit("sw $0, 0($sp)");
 	}
 	else
 	{
@@ -306,10 +374,36 @@ Statement : LBRACE {
         errorMismatch(yylineno);
         exit(0);
     }
+
+    // HW5:
+    string expType = getExpType($3);
+    SymbolTableEntry* e = getIdEntry(name,false);
+    if (expType == "BOOL")
+    {
+        int reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.bpatch($3->true_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 1");
+        cf.emit("sw $"+ to_string(reg) +"," + to_string((-4) * e->offset) + "($fp)");
+        setRegister(reg,true); //not sure about this...
+        $$->next_list = cf.makelist(cf.emit("j  "));
+        cf.bpatch($3->false_list,cf.genLabel());
+        cf.emit("sw $0," + to_string((-4) * e->offset) + "($fp)");
+    }
+    else
+    {
+        cf.emit("sw $" + to_string($3->reg) + "," + to_string((-4) * e->offset) + "($fp)");
+        setRegister($3->reg, true);
+    }
 }
 | Call SC
 {
     $$ = $1;
+
+    //todo: hw5
+    // HW5:
+    setRegister($1->reg,true);
+    $$->next_list = cf.merge($1->true_list,$1->false_list);
 }
 | RETURN SC 
 {
@@ -332,11 +426,18 @@ Statement : LBRACE {
     		exit(0);
     }
 
-    //HW5:
+    // HW5:
     string type = getExpType($2);
     if (type == "BOOL")
     {
-    //TODO: later
+        cf.bpatch($2->true_list,cf.genLabel());
+        cf.emit("li $v0, 1");
+        int quad = cf.emit("j ");
+        cf.bpatch($2->false_list,cf.genLabel());
+        cf.emit("li $v0, 0");
+        cf.bpatch(cf.makelist(quad), cf.genLabel());
+        //empty_func_stack();
+        cf.emit("jr $ra");
     }
     else
     {
@@ -361,6 +462,8 @@ Statement : LBRACE {
 	whileLoopCnt--;
 	endScope();
 	closeScope();
+
+	//todo: hw5
 }
 | BREAK SC 
 {
@@ -369,14 +472,22 @@ Statement : LBRACE {
 		errorUnexpectedBreak(yylineno);
 		exit(0);
 	}
+
+	//todo: hw5
+    $$ = new Type();
+    $$->break_list = cf.makelist(cf.emit("j "));
 }
 | CONTINUE SC 
 {
+	//todo: hw5 while table?
 	if (whileLoopCnt == 0)
 	{
 		errorUnexpectedContinue(yylineno);
 		exit(0);
 	}
+
+	$$ = new Type();
+	$$->continue_list = cf.makelist(cf.emit("j  "));
 }
 | IF LPAREN Exp RPAREN {
     if (isDevStage) {
@@ -435,7 +546,8 @@ Call : ID LPAREN ExpList RPAREN
         exit(0);
     }
 
-    $$ = new Type(getExpFuncReturnType($1));
+    string type = getExpFuncReturnType($1);
+    $$ = new Type(type);
 
     //HW5
     //todo backup used registers
@@ -447,12 +559,13 @@ Call : ID LPAREN ExpList RPAREN
     cf.emit("sw $ra, ($sp)");
 
     //Push function's arguments on stack
-    cout << "test: " << expList->places[0] << endl;
+    cout << "test: " << expList->registers[0] << endl;
     cf.emit("subu $sp, $sp, 4");
     cf.emit("sw $" + to_string($2->reg) + ", ($sp)");
     setRegister($2->reg,true);
 
     clearTempRegisters();
+
     if (name == "main") {
         cf.emit("jal main");
     }
@@ -483,28 +596,122 @@ Call : ID LPAREN ExpList RPAREN
         exit(0);
     }
 
-    $$ = new Type(getExpFuncReturnType($1));
+    string type = getExpFuncReturnType($1);
+    $$ = new Type(type);
+
+    // HW5:
+    vector<int> backupRegisters;
+
+    for (int i=8; i<=25; ++i)
+    {
+        if (isRegisterAvailable(i) == false)
+        {
+            cf.emit("subu $sp, $sp, 4");
+            cf.emit("sw $" + to_string(i) + ", ($sp)");
+            backupRegisters.push_back(i);
+        }
+    }
+
+    cf.emit("subu $sp, $sp, 4");
+    cf.emit("sw $fp, ($sp)");
+    cf.emit("subu $sp, $sp, 4");
+    cf.emit("sw $ra, ($sp)");
+    clearTempRegisters();
+    cf.emit("subu $fp, $sp, 4");
+
+    if (name != "main") name = name + "_";
+    cf.emit("jal " + name);
+    cf.emit("lw $ra, ($sp)");
+    cf.emit("addu $sp, $sp, 4");
+    cf.emit("lw $fp, ($sp)");
+    cf.emit("addu $sp, $sp, 4");
+
+    for (int i=backupRegisters.size()-1; i>=0; --i) //Restore registers
+    {
+        setRegister(backupRegisters[i],false);
+        cf.emit("lw $" + to_string(backupRegisters[i]) + ", ($sp)");
+        cf.emit("addu $sp, $sp, 4");
+    }
+
+    if (type == "BOOL")
+    {
+        int quad = cf.emit("beq $v0, 0, ");
+        $$->true_list = cf.makelist(cf.emit("j "));
+        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        $$->false_list=cf.makelist(cf.emit("j "));
+    }
+    else
+    {
+        int reg = getAvailableRegister();
+        cf.emit("add $" + to_string(reg) + ", $v0, 0");
+        $$->reg = reg;
+    }
 }
 ;
 
 ExpList : Exp
 {
-    int place = getAvailableRegister();
-    setRegister(place, false);
-	$$ = new NameMultiTypeInfo(getExpType($1), place);
+    // HW5:
+    string expType = getExpType($1);
+    int reg;
+    if (expType == "BOOL"){
+        reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.bpatch($1->true_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 1");
+        int quad = cf.emit("j  ");
+        cf.bpatch($1->false_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 0");
+        cf.bpatch(cf.makelist(quad),cf.genLabel());
+    }
+    else if (expType == "STRING")
+    {
+        reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.emit("la $" + to_string(reg) + ", " + $1->label);
+    }
+    else reg = $1->reg;
+
+    $$ = new NameMultiTypeInfo(getExpType($1), reg);
 }
-| Exp COMMA ExpList
+| Exp
+{
+    // HW5:
+    string expType = getExpType($1);
+    int reg;
+    if (expType == "BOOL"){
+        reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.bpatch($1->true_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 1");
+        int quad = cf.emit("j  ");
+        cf.bpatch($1->false_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 0");
+        cf.bpatch(cf.makelist(quad),cf.genLabel());
+    }
+    else if (expType == "STRING")
+    {
+        reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.emit("la $" + to_string(reg) + ", " + $1->label);
+    }
+    else reg = $1->reg;
+
+    $$ = new NameMultiTypeInfo(getExpType($1), reg);
+}
+COMMA ExpList
 {
 	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>($3);
 	vector<string> types = expList->types;
-	vector<int> places = expList->places;
+	vector<int> regs = expList->registers; //HW5
 	string type = getExpType($1);
-    int place = getAvailableRegister();
-    setRegister(place, false);
+    int reg = getAvailableRegister(); //HW5
+    setRegister(reg, false); //HW5
 	types.push_back(type);
-	places.push_back(place);
+	regs.push_back(reg); //HW5
 
-	$$ = new NameMultiTypeInfo(types);
+	$$ = new NameMultiTypeInfo(types,regs); //HW5
+
 }
 ;
 
@@ -521,26 +728,20 @@ Exp : LPAREN Exp RPAREN
 	    errorMismatch(yylineno);
 	    exit(0);
 	}
-
-	$$ = new Type(getExpType($1));
+    string type = getExpType($1);
+	$$ = new Type(type);
 
 	NameTypeInfo* binop = dynamic_cast<NameTypeInfo*>($2);
 	string op = binop->name;
+	string cmd;
 
-    string cmd;
-
-    if (op == "*") {
-        cmd = "mul ";
-    }
-    else if(op == "/") { //TODO: check for division by zero
-        cmd = "div ";
-    }
-    else if(op == "+") {
-        cmd = "addu ";
-    }
-    else if(op == "-") {
-        cmd = "subu "; break;
-    }
+	if (op == "*") cmd = "mul ";
+	if (op == "/") {
+	    cf.emit("beqz $" + to_string($3->reg) + ", div_zero");
+	    cmd = "div ";
+	}
+	if (op == "+") cmd = "addu ";
+	if (op == "-") cmd = "subu ";
 
 
     // e.g.: addu $1,$1,$2 , puts result of addu into $1
@@ -549,7 +750,8 @@ Exp : LPAREN Exp RPAREN
     //set register of 2nd operand as available
     setRegister($3->reg,true);
 
-    //TODO: if (result_type=="BYTE")
+    if (type == "BYTE")
+        cf.emit("and $" + to_string($1->reg) + ", $" + to_string($1->reg) + ", 255");
 
     $$->reg = $1->reg;
 }
@@ -563,7 +765,8 @@ Exp : LPAREN Exp RPAREN
 	    exit(0);
 	}
 	//$$ = $1;
-	$$ = new Type(getExpType($1));
+	string type = getExpType($1);
+	$$ = new Type(type);
 
     // HW5:
     //allocating new register for local variable
@@ -572,8 +775,14 @@ Exp : LPAREN Exp RPAREN
     SymbolTableEntry* e=getIdEntry(name,false);
     cf.emit("lw $" + to_string(reg) + ", " + to_string((-4)*(e->offset)) + "($fp)");
 
-    //TODO: if (info->type == "BOOL")
-    $$->reg = reg;
+    if (type == "BOOL")
+    {
+        $$->true_list = cf.makelist(cf.emit("beq $" + to_string(reg) + ", 1,  "));
+        $$->false_list = cf.makelist(cf.emit("j  "));
+        setRegister(reg,true);
+    }
+    else
+        $$->reg = reg;
 }
 | Call
 {
@@ -613,31 +822,59 @@ Exp : LPAREN Exp RPAREN
 | STRING
 {
 	$$ = new Type("STRING");
+
+	// HW5:
+	NameTypeInfo* s = dynamic_cast<NameTypeInfo*>($1);
+	string string_content = s->name;
+	string label = "string_" + to_string(stringCnt);
+	stringCnt++;
+	cf.emitData(label + ": .asciiz " + string_content);
+	$$->label = label;
 }
 | TRUE
 {
 	$$ = new Type("BOOL");
+
+	// HW5:
+	$$->true_list = cf.makelist(cf.emit("j "));
 }
 | FALSE
 {
 	$$ = new Type("BOOL");
+
+	// HW5:
+	$$->false_list = cf.makelist(cf.emit("j "));
 }
 | NOT Exp
 {
 	checkExpressionType($2,"BOOL",yylineno);
 	$$ = new Type("BOOL");
+
+    // HW5:
+    $$->true_list = $2->false_list;
+    $$->false_list = $2->true_list;
 }
-| Exp AND Exp
+| Exp AND NewLabel Exp
 {
 	checkExpressionType($1,"BOOL",yylineno);
 	checkExpressionType($3,"BOOL",yylineno);
 	$$ = new Type("BOOL");
+
+    // HW5:
+    cf.bpatch($1->true_list,$3->label);
+    $$->true_list = $4->true_list;
+    $$->false_list = cf.merge($1->false_list,$4->false_list);
 }
-| Exp OR Exp
+| Exp OR NewLabel Exp
 {
 	checkExpressionType($1,"BOOL",yylineno);
 	checkExpressionType($3,"BOOL",yylineno);
 	$$ = new Type("BOOL");
+
+	// HW5:
+    cf.bpatch($1->false_list,$3->label);
+    $$->true_list = cf.merge($1->true_list,$4->true_list);
+    $$->false_list = $4->false_list;
 }
 | Exp RELOP Exp
 {
@@ -646,6 +883,24 @@ Exp : LPAREN Exp RPAREN
  	if (type_right_exp!="INT" && type_right_exp!="BYTE") {errorMismatch(yylineno); exit(0);}
 	if (type_left_exp!="INT" && type_left_exp!="BYTE") {errorMismatch(yylineno); exit(0);}
 	$$ = new Type("BOOL");
+
+    // HW5:
+	NameTypeInfo* relop = dynamic_cast<NameTypeInfo*>($2);
+	string op = relop->name;
+
+	if (op == "<")
+	    $$->true_list = cf.makelist(cf.emit("blt $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	if (op == "<=")
+	    $$->true_list = cf.makelist(cf.emit("ble $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	if (op == ">")
+	    $$->true_list = cf.makelist(cf.emit("bgt $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	if (op == ">=")
+	    $$->true_list = cf.makelist(cf.emit("bge $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+
+	$$->false_list = cf.makelist(cf.emit("j "));
+
+	setRegister($1->reg,true);
+	setRegister($3->reg,true);
 }
 ;
 

@@ -84,6 +84,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/cygdrive/c/compi-hw5/bp.cpp">
+			<Option target="yahani"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/compi-hw5/bp.hpp">
+			<Option target="yahani"/>
+		</Unit>
 		<Unit filename="/cygdrive/c/compi-hw5/cmake-build-debug/lexer.cpp">
 			<Option target="yahani"/>
 		</Unit>

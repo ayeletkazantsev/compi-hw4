@@ -73,11 +73,11 @@ WHITESPACE ([\n\t\f\r\v ])
 {LBRACE} {return LBRACE;}
 {RBRACE} {return RBRACE;}
 {ASSIGN} {return ASSIGN;}
-{RELOP} {return RELOP;}
+{RELOP} {yylval = new NameTypeInfo("RELOP",yytext); return RELOP;}
 {BINOP} {yylval = new NameTypeInfo("BINOP",yytext); return BINOP;}
 {ID} {yylval = new NameTypeInfo("ID",yytext); return ID;}
 {NUM} {yylval = new NameTypeInfo("INT",yytext); return NUM;}
-{STRING} {return STRING;}
+{STRING} {yylval = new NameTypeInfo("STRING",yytext); return STRING;}
 {COMMENT} {}
 {WHITESPACE} {}
 . {errorLex(yylineno); exit(0);};

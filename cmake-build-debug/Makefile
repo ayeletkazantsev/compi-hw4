@@ -123,6 +123,33 @@ yahani/fast:
 	$(MAKE) -f CMakeFiles/yahani.dir/build.make CMakeFiles/yahani.dir/build
 .PHONY : yahani/fast
 
+bp.o: bp.cpp.o
+
+.PHONY : bp.o
+
+# target to build an object file
+bp.cpp.o:
+	$(MAKE) -f CMakeFiles/yahani.dir/build.make CMakeFiles/yahani.dir/bp.cpp.o
+.PHONY : bp.cpp.o
+
+bp.i: bp.cpp.i
+
+.PHONY : bp.i
+
+# target to preprocess a source file
+bp.cpp.i:
+	$(MAKE) -f CMakeFiles/yahani.dir/build.make CMakeFiles/yahani.dir/bp.cpp.i
+.PHONY : bp.cpp.i
+
+bp.s: bp.cpp.s
+
+.PHONY : bp.s
+
+# target to generate assembly for a file
+bp.cpp.s:
+	$(MAKE) -f CMakeFiles/yahani.dir/build.make CMakeFiles/yahani.dir/bp.cpp.s
+.PHONY : bp.cpp.s
+
 lexer.o: lexer.cpp.o
 
 .PHONY : lexer.o
@@ -240,6 +267,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... yahani"
+	@echo "... bp.o"
+	@echo "... bp.i"
+	@echo "... bp.s"
 	@echo "... lexer.o"
 	@echo "... lexer.i"
 	@echo "... lexer.s"
