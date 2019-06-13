@@ -130,7 +130,7 @@ NewNextList : %empty
 NewWhile : %empty
 ;
 
-Funcs : %empty | FuncDecl {cf.printCodeBuffer();} Funcs  //DONE! no need to change
+Funcs : %empty | FuncDecl {cf.printDataBuffer(); cf.printCodeBuffer();} Funcs  //DONE! no need to change
 ;
 
 FuncDecl : RetType ID LPAREN Formals RPAREN

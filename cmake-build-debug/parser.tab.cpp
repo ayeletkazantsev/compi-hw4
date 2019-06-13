@@ -1417,7 +1417,7 @@ yyreduce:
 
   case 6:
 #line 133 "parser.ypp" /* yacc.c:1646  */
-    {cf.printCodeBuffer();}
+    {cf.printDataBuffer(); cf.printCodeBuffer();}
 #line 1422 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
