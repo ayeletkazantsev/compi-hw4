@@ -5,6 +5,7 @@
 #include <utility>
 #include <stdlib.h>
 #include <string>
+#include <algorithm>
 #include "source.hpp"
 #include "output.hpp"
 #include "parser.hpp"
@@ -50,6 +51,7 @@ CodeBuffer &cf = CodeBuffer::instance();
 
 Program : M Funcs END_OF_FILE
 {
+
     if (!checkMainFuncLegal())
     {
         errorMainMissing();
@@ -85,7 +87,7 @@ M : %empty
 	initRegisters();
 
     // print
-    cf.emit("print_:");
+    cf.emit("_print:");
     cf.emit("lw $a0, 0($sp)");
     cf.emit("li $v0, 4");
     cf.emit("syscall");
@@ -93,16 +95,17 @@ M : %empty
     cf.emit("jr $ra");
 
     // printi
-    cf.emit("printi_:");
+    cf.emit("_printi:");
     cf.emit("lw $a0, 0($sp)");
     cf.emit("li $v0, 1");
     cf.emit("syscall");
     cf.emit("addu $sp, $sp, 4");
     cf.emit("jr $ra");
 
-    cf.emitData("div_zero_error: .asciiz \"Error division by zero\\n\"");
-    cf.emit("div_zero :");
-    cf.emit("la $a0, div_zero_error");
+    // Division by zero handler
+    cf.emitData("div_by_zero_error: .asciiz \"Error division by zero\\n\"");
+    cf.emit("div_zero:");
+    cf.emit("la $a0, div_by_zero_error");
     cf.emit("li $v0, 4"); // Syscall to print
     cf.emit("syscall");
     cf.emit("li $v0, 10"); // Syscall to terminate
@@ -110,6 +113,7 @@ M : %empty
 }
 ;
 
+//HW5:
 NewLabel : %empty
 {
     $$ = new Type();
@@ -126,7 +130,7 @@ NewNextList : %empty
 NewWhile : %empty
 ;
 
-Funcs : %empty | FuncDecl Funcs //DONE! no need to change
+Funcs : %empty | FuncDecl {cf.printCodeBuffer();} Funcs  //DONE! no need to change
 ;
 
 FuncDecl : RetType ID LPAREN Formals RPAREN
@@ -157,18 +161,18 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     }
 
     // HW5:
-    if (name == "main") {
-        cf.emit("main:");
-        cf.emit("subu $fp, $sp, 4");
-    }
-    else cf.emit(name + "_:");
+    if (name == "main") cf.emit("main:");
+    else cf.emit(name + "_f:");
+
+    cf.emit("move $fp, $sp");
+    cf.emit("subu $fp, 4");
 } PreConditions LBRACE Statements RBRACE {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
 	string name = id->name;
     currentReturnType = "";
 
     // HW5:
-    cf.bpatch($8->next_list,cf.genLabel()); //todo: check if this is correct
+    cf.bpatch($9->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -311,7 +315,7 @@ Statement : LBRACE {
 	pushIdentifierToStack($1->type,id->name);
 
 	// HW5:
-	//todo: hw5 new node?
+	$$ = new Type();
     cf.emit("subu $sp, $sp, 4"); // Move stack pointer
     cf.emit("sw $0, 0($sp)"); // Initialize to zero
 }
@@ -336,9 +340,9 @@ Statement : LBRACE {
 
 	//HW5:
 	string type = $1->type;
+	int reg = getAvailableRegister();
+    setRegister(reg,false);
 	if (type == "BOOL") {
-	    int reg = getAvailableRegister();
-	    setRegister(reg,false);
         cf.bpatch($4->true_list,cf.genLabel());
         cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
         cf.emit("li $" + to_string(reg) + ", 1");
@@ -377,14 +381,14 @@ Statement : LBRACE {
     // HW5:
     string expType = getExpType($3);
     SymbolTableEntry* e = getIdEntry(name,false);
+    int reg = getAvailableRegister();
+    setRegister(reg,false);
     if (expType == "BOOL")
     {
-        int reg = getAvailableRegister();
-        setRegister(reg,false);
         cf.bpatch($3->true_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 1");
         cf.emit("sw $"+ to_string(reg) +"," + to_string((-4) * e->offset) + "($fp)");
-        setRegister(reg,true); //not sure about this...
+        setRegister(reg,true);
         $$->next_list = cf.makelist(cf.emit("j  "));
         cf.bpatch($3->false_list,cf.genLabel());
         cf.emit("sw $0," + to_string((-4) * e->offset) + "($fp)");
@@ -397,10 +401,8 @@ Statement : LBRACE {
 }
 | Call SC
 {
-    $$ = $1;
-
-    //todo: hw5
     // HW5:
+    $$ = new Type();
     setRegister($1->reg,true);
     $$->next_list = cf.merge($1->true_list,$1->false_list);
 }
@@ -411,6 +413,10 @@ Statement : LBRACE {
 		errorMismatch(yylineno);
 		exit(0);
 	}
+
+	$$ = new Type();
+	//todo: empty_func_stack()?
+	cf.emit("jr $ra");
 }
 | RETURN Exp SC 
 {
@@ -488,7 +494,7 @@ Statement : LBRACE {
 	$$ = new Type();
 	$$->continue_list = cf.makelist(cf.emit("j  "));
 }
-| IF LPAREN Exp RPAREN {
+| IF LPAREN Exp RPAREN NewLabel {
     if (isDevStage) {
         cout << "DEBUG: start of if scope" << endl;
     }
@@ -549,7 +555,21 @@ Call : ID LPAREN ExpList RPAREN
     $$ = new Type(type);
 
     //HW5
-    //todo backup used registers
+    vector<int> argumentsRegs = expList->registers;
+    vector<int> backupRegisters;
+
+    // backup register only if it is used and not by arguments
+    for (int i=8; i<=25; ++i)
+    {
+        if (isRegisterAvailable(i) == false && find(argumentsRegs.begin(), argumentsRegs.end(), i) == argumentsRegs.end())
+            {
+                cf.emit("subu $sp, $sp, 4");
+                cf.emit("sw $" + to_string(i) + ", ($sp)");
+                backupRegisters.push_back(i);
+            }
+    }
+
+
 
     //Push $fp and $ra to stack
     cf.emit("subu $sp, $sp, 4");
@@ -559,19 +579,51 @@ Call : ID LPAREN ExpList RPAREN
 
     //Push function's arguments on stack
     cout << "test: " << expList->registers[0] << endl;
-    cf.emit("subu $sp, $sp, 4");
-    cf.emit("sw $" + to_string($2->reg) + ", ($sp)");
-    setRegister($2->reg,true);
+
+    for (int i = exp_args_types.size()-1; i>=0; --i)
+    {
+        cf.emit("subu $sp, $sp, 4");
+        cf.emit("sw $"+ to_string(argumentsRegs[i]) + ", ($sp)");
+        setRegister(argumentsRegs[i],true);
+    }
+
+    // not sure if this code is correct...
+   // cf.emit("subu $sp, $sp, 4");
+    //cf.emit("sw $" + to_string($2->reg) + ", ($sp)");
+   // setRegister($2->reg,true);
 
     clearTempRegisters();
 
-    if (name == "main") {
-        cf.emit("jal main");
-    }
-    else {
-        cf.emit("jal _" + name);
+    cf.emit("subu $fp, $sp, 4");
+
+    if (name == "main") cf.emit("jal main");
+    else cf.emit("jal _" + name);
+
+    cf.emit("lw $ra, ($sp)");
+    cf.emit("addu $sp, $sp, 4");
+    cf.emit("lw $fp, ($sp)");
+    cf.emit("addu $sp, $sp, 4");
+
+    //Restore backuped registers
+    for (int i=0; i < backupRegisters.size(); ++i)
+    {
+        cf.emit("lw $" + to_string(backupRegisters[i]) + ", ($sp)");
+        cf.emit("addu $sp, $sp, 4");
+        setRegister(backupRegisters[i], false);
     }
 
+    if (type == "BOOL"){
+        int quad = cf.emit("beq $v0, 0, ");
+        $$->true_list = cf.makelist(cf.emit("j "));
+        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        $$->false_list=cf.makelist(cf.emit("j "));
+    }
+    else
+    {
+        int reg = getAvailableRegister();
+        cf.emit("add $" + to_string(reg) + ", $v0, 0");
+        $$->reg = reg;
+    }
 
 }
 | ID LPAREN RPAREN
@@ -615,9 +667,10 @@ Call : ID LPAREN ExpList RPAREN
     cf.emit("sw $fp, ($sp)");
     cf.emit("subu $sp, $sp, 4");
     cf.emit("sw $ra, ($sp)");
-    clearTempRegisters();
-    cf.emit("subu $fp, $sp, 4");
 
+    clearTempRegisters();
+
+    cf.emit("subu $fp, $sp, 4");
     if (name != "main") name = name + "_";
     cf.emit("jal " + name);
     cf.emit("lw $ra, ($sp)");
@@ -916,6 +969,8 @@ int main() {
 	yyparse();
 
 	//HW5
+	cout << "came here" << endl;
+	cf.printCodeBuffer();
     cf.printDataBuffer();
-    cf.printCodeBuffer();
+
 }

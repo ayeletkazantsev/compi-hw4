@@ -70,6 +70,7 @@
 #include <utility>
 #include <stdlib.h>
 #include <string>
+#include <algorithm>
 #include "source.hpp"
 #include "output.hpp"
 #include "parser.hpp"
@@ -94,7 +95,7 @@ int stringCnt = 0;
 CodeBuffer &cf = CodeBuffer::instance();
 
 
-#line 98 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:339  */
+#line 99 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -179,7 +180,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 183 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:358  */
+#line 184 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -421,16 +422,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  3
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   146
+#define YYLAST   147
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  34
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  27
+#define YYNNTS  28
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  60
+#define YYNRULES  61
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  109
+#define YYNSTATES  111
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -479,13 +480,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    51,    51,    70,   113,   129,   129,   133,   132,   188,
-     188,   191,   195,   201,   209,   220,   235,   241,   249,   261,
-     266,   265,   279,   285,   279,   299,   318,   360,   398,   407,
-     415,   451,   451,   467,   479,   491,   491,   505,   514,   513,
-     525,   577,   651,   677,   676,   717,   717,   717,   720,   724,
-     757,   786,   790,   802,   821,   833,   840,   847,   856,   867,
-     878
+       0,    52,    52,    72,   117,   133,   133,   133,   137,   136,
+     192,   192,   195,   199,   205,   213,   224,   239,   245,   253,
+     265,   270,   269,   283,   289,   283,   303,   322,   364,   402,
+     409,   421,   457,   457,   473,   485,   497,   497,   511,   520,
+     519,   531,   629,   704,   730,   729,   770,   770,   770,   773,
+     777,   810,   839,   843,   855,   874,   886,   893,   900,   909,
+     920,   931
 };
 #endif
 
@@ -499,10 +500,10 @@ static const char *const yytname[] =
   "CONTINUE", "PRECOND", "SC", "COMMA", "LPAREN", "RPAREN", "LBRACE",
   "RBRACE", "RELOP", "BINOP", "ID", "NUM", "STRING", "ASSIGN",
   "END_OF_FILE", "NOT", "CONFLICT", "ELSE", "$accept", "Program", "M",
-  "NewLabel", "Funcs", "FuncDecl", "@1", "RetType", "Formals",
+  "NewLabel", "Funcs", "$@1", "FuncDecl", "@2", "RetType", "Formals",
   "FormalsList", "FormalDecl", "PreConditions", "PreCondition",
-  "Statements", "@2", "Statement", "@3", "@4", "$@5", "$@6",
-  "SelectionStatement", "$@7", "Call", "ExpList", "@8", "Type", "Exp", YY_NULLPTR
+  "Statements", "@3", "Statement", "@4", "@5", "$@6", "$@7",
+  "SelectionStatement", "$@8", "Call", "ExpList", "@9", "Type", "Exp", YY_NULLPTR
 };
 #endif
 
@@ -518,31 +519,32 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -61
+#define YYPACT_NINF -59
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-61)))
+  (!!((Yystate) == (-59)))
 
-#define YYTABLE_NINF -44
+#define YYTABLE_NINF -45
 
 #define yytable_value_is_error(Yytable_value) \
-  (!!((Yytable_value) == (-44)))
+  (!!((Yytable_value) == (-45)))
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -61,     6,   129,   -61,   -61,   -61,   -61,   -61,   -22,   129,
-     -17,   -61,   -61,   -61,     3,    42,    11,   -61,    24,    52,
-     -61,    42,   -61,   -61,   -61,    -5,    39,    59,   -61,    34,
-       0,    63,    64,    61,    70,   -61,   -16,    73,   -61,    84,
-      79,   -61,   -61,    34,    97,   124,   -61,    34,   -61,    13,
-     -61,    82,    34,    34,   -61,   -61,    59,    66,    34,   -61,
-      59,   -61,   -13,    27,   -61,   -61,   -61,   -61,   -61,    34,
-      34,   -61,    90,    95,   112,   -61,   118,   104,   100,   -61,
-     -61,    34,   -61,    34,    34,    33,   -61,   -61,   -61,   -61,
-     -61,   121,   -61,   113,    43,   102,    59,    59,   119,    34,
-     -61,   108,   -61,   -61,   -61,   -61,   -61,    59,   -61
+     -59,     8,   126,   -59,   -59,   -59,   -59,   -59,   -21,   -59,
+     -12,   -59,   -59,   126,    12,   -59,   136,    -4,   -59,    26,
+      10,   -59,   136,   -59,   -59,   -59,   -10,    27,    45,   -59,
+      65,     0,    34,    46,    64,    72,   -59,   -16,    83,   -59,
+      94,    88,   -59,   -59,    65,    95,   120,   -59,    65,   -59,
+      78,   -59,    80,    65,    65,   -59,   -59,    45,    52,    65,
+     -59,    45,   -59,    17,    86,   -59,   -59,   -59,   -59,   -59,
+      65,    65,   -59,    92,   100,    97,   -59,   106,    -3,   110,
+     -59,   -59,    65,   -59,    65,    65,    14,   -59,   -59,   -59,
+     -59,   -59,   117,   -59,   114,    44,    40,   -59,    45,   119,
+      65,   -59,    45,   -59,   -59,   -59,   104,   -59,   -59,    45,
+     -59
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -550,33 +552,34 @@ static const yytype_int16 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       3,     0,     5,     1,    10,    45,    46,    47,     0,     5,
-       0,     9,     2,     6,     0,    11,     0,    12,    13,     0,
-       7,     0,    15,    16,    14,     0,     0,     0,    17,     0,
-       0,     0,     0,     0,     0,    22,     0,    20,    19,     0,
-       0,    55,    56,     0,    50,    52,    54,     0,    51,     0,
-      29,     0,     0,     0,    33,    34,     0,     0,     0,     8,
-       0,    28,     0,     0,    53,    57,     4,     4,    18,     0,
-       0,    30,     0,     0,    20,    41,     0,    42,     0,    21,
-      25,     0,    48,     0,     0,    60,    49,    35,    31,    23,
-      40,     0,    27,     0,    58,    59,     0,     0,     0,     0,
-      26,    37,    36,    32,    24,    44,    38,     0,    39
+       3,     0,     5,     1,    11,    46,    47,    48,     0,     6,
+       0,    10,     2,     5,     0,     7,    12,     0,    13,    14,
+       0,     8,     0,    16,    17,    15,     0,     0,     0,    18,
+       0,     0,     0,     0,     0,     0,    23,     0,    21,    20,
+       0,     0,    56,    57,     0,    51,    53,    55,     0,    52,
+       0,    30,     0,     0,     0,    34,    35,     0,     0,     0,
+       9,     0,    29,     0,     0,    54,    58,     4,     4,    19,
+       0,     0,    31,     0,     0,    21,    42,     0,    43,     0,
+      22,    26,     0,    49,     0,     0,    61,    50,     4,    32,
+      24,    41,     0,    28,     0,    59,    60,    36,     0,     0,
+       0,    27,     0,    33,    25,    45,    38,    37,    39,     0,
+      40
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -61,   -61,   -61,   -60,   134,   -61,   -61,   -61,   -61,   123,
-     -61,   -61,   -61,    89,   -61,   -57,   -61,   -61,   -61,   -61,
-     -61,   -61,   -27,    47,   -61,    80,   -28
+     -59,   -59,   -59,     9,   131,   -59,   -59,   -59,   -59,   -59,
+     123,   -59,   -59,   -59,    89,   -59,   -58,   -59,   -59,   -59,
+     -59,   -59,   -59,   -28,    47,   -59,    21,   -29
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     2,    83,     8,     9,    23,    10,    16,    17,
-      18,    25,    28,    37,    60,    38,    56,    98,    97,    96,
-     102,   107,    48,    76,    91,    40,    77
+      -1,     1,     2,    84,     8,    13,     9,    24,    10,    17,
+      18,    19,    26,    29,    38,    61,    39,    57,    99,    98,
+     102,   107,   109,    49,    77,    92,    41,    78
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -584,81 +587,82 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      39,    49,    51,    79,    57,    80,     3,    84,    12,    14,
-      41,    42,    26,    58,    89,    63,    81,    27,    50,    65,
-      43,    66,    67,    15,    72,    73,    44,    45,    46,    39,
-      78,    47,    20,    39,    68,    66,    67,    69,    70,   101,
-     103,    85,    86,    21,    41,    42,     5,     6,    82,     7,
-     108,    69,    70,    93,    43,    94,    95,   -44,    70,    29,
-      44,    45,    46,     5,     6,    47,     7,    69,    70,    39,
-      39,    30,    31,    32,    33,    34,    41,    42,    22,    54,
-      39,    35,    11,    52,    53,    36,    43,    75,    55,    11,
-      66,    67,    44,    45,    46,    19,    59,    47,    66,    67,
-      71,    19,    61,    66,    67,    62,    69,    70,    66,    67,
-      66,    87,    66,    67,    69,    70,    88,    57,    92,    69,
-      70,    66,    67,   -43,    69,    70,    69,    70,    69,    70,
-      64,   100,     4,     5,     6,    -4,     7,    69,    70,    90,
-      99,   106,   104,    13,    24,    74,   105
+      40,    50,    52,    80,    58,    67,    68,    27,     3,    12,
+      42,    43,    28,    59,    14,    64,   -44,    21,    51,    66,
+      44,    70,    71,    11,    73,    74,    45,    46,    47,    40,
+      79,    48,    16,    40,    11,    81,    23,    20,   -45,    71,
+     103,    86,    87,    20,   106,    22,    82,    30,    67,     5,
+       6,   110,     7,    94,    53,    95,    96,    31,    32,    33,
+      34,    35,    42,    43,    70,    71,    54,    36,    70,    71,
+      40,    37,    44,    76,    40,    42,    43,    85,    45,    46,
+      47,    40,    55,    48,    90,    44,    67,    68,    67,    68,
+      56,    45,    46,    47,    67,    68,    48,    97,    72,    69,
+      67,    68,    70,    71,    70,    71,    60,    83,    67,    68,
+      70,    71,    62,    88,    63,    58,    70,    71,    67,    68,
+      -4,    89,    67,    68,    70,    71,    65,    91,    93,     4,
+       5,     6,   101,     7,    70,    71,   100,   108,    70,    71,
+       5,     6,   104,     7,    15,    25,    75,   105
 };
 
 static const yytype_uint8 yycheck[] =
 {
-      27,    29,    30,    60,    20,    18,     0,    67,    30,    26,
-      10,    11,    17,    29,    74,    43,    29,    22,    18,    47,
-      20,     8,     9,    20,    52,    53,    26,    27,    28,    56,
-      58,    31,    21,    60,    21,     8,     9,    24,    25,    96,
-      97,    69,    70,    19,    10,    11,     4,     5,    21,     7,
-     107,    24,    25,    81,    20,    83,    84,    24,    25,    20,
-      26,    27,    28,     4,     5,    31,     7,    24,    25,    96,
-      97,    12,    13,    14,    15,    16,    10,    11,    26,    18,
-     107,    22,     2,    20,    20,    26,    20,    21,    18,     9,
-       8,     9,    26,    27,    28,    15,    23,    31,     8,     9,
-      18,    21,    18,     8,     9,    26,    24,    25,     8,     9,
-       8,    21,     8,     9,    24,    25,    21,    20,    18,    24,
-      25,     8,     9,    19,    24,    25,    24,    25,    24,    25,
-       6,    18,     3,     4,     5,    23,     7,    24,    25,    21,
-      19,    33,    23,     9,    21,    56,    99
+      28,    30,    31,    61,    20,     8,     9,    17,     0,    30,
+      10,    11,    22,    29,    26,    44,    19,    21,    18,    48,
+      20,    24,    25,     2,    53,    54,    26,    27,    28,    57,
+      59,    31,    20,    61,    13,    18,    26,    16,    24,    25,
+      98,    70,    71,    22,   102,    19,    29,    20,     8,     4,
+       5,   109,     7,    82,    20,    84,    85,    12,    13,    14,
+      15,    16,    10,    11,    24,    25,    20,    22,    24,    25,
+      98,    26,    20,    21,   102,    10,    11,    68,    26,    27,
+      28,   109,    18,    31,    75,    20,     8,     9,     8,     9,
+      18,    26,    27,    28,     8,     9,    31,    88,    18,    21,
+       8,     9,    24,    25,    24,    25,    23,    21,     8,     9,
+      24,    25,    18,    21,    26,    20,    24,    25,     8,     9,
+      23,    21,     8,     9,    24,    25,     6,    21,    18,     3,
+       4,     5,    18,     7,    24,    25,    19,    33,    24,    25,
+       4,     5,    23,     7,    13,    22,    57,   100
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    35,    36,     0,     3,     4,     5,     7,    38,    39,
-      41,    59,    30,    38,    26,    20,    42,    43,    44,    59,
-      21,    19,    26,    40,    43,    45,    17,    22,    46,    20,
-      12,    13,    14,    15,    16,    22,    26,    47,    49,    56,
-      59,    10,    11,    20,    26,    27,    28,    31,    56,    60,
-      18,    60,    20,    20,    18,    18,    50,    20,    29,    23,
-      48,    18,    26,    60,     6,    60,     8,     9,    21,    24,
-      25,    18,    60,    60,    47,    21,    57,    60,    60,    49,
-      18,    29,    21,    37,    37,    60,    60,    21,    21,    37,
-      21,    58,    18,    60,    60,    60,    53,    52,    51,    19,
-      18,    49,    54,    49,    23,    57,    33,    55,    49
+       0,    35,    36,     0,     3,     4,     5,     7,    38,    40,
+      42,    60,    30,    39,    26,    38,    20,    43,    44,    45,
+      60,    21,    19,    26,    41,    44,    46,    17,    22,    47,
+      20,    12,    13,    14,    15,    16,    22,    26,    48,    50,
+      57,    60,    10,    11,    20,    26,    27,    28,    31,    57,
+      61,    18,    61,    20,    20,    18,    18,    51,    20,    29,
+      23,    49,    18,    26,    61,     6,    61,     8,     9,    21,
+      24,    25,    18,    61,    61,    48,    21,    58,    61,    61,
+      50,    18,    29,    21,    37,    37,    61,    61,    21,    21,
+      37,    21,    59,    18,    61,    61,    61,    37,    53,    52,
+      19,    18,    54,    50,    23,    58,    50,    55,    33,    56,
+      50
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    34,    35,    36,    37,    38,    38,    40,    39,    41,
-      41,    42,    42,    43,    43,    44,    45,    45,    46,    47,
-      48,    47,    50,    51,    49,    49,    49,    49,    49,    49,
-      49,    52,    49,    49,    49,    53,    49,    54,    55,    54,
-      56,    56,    57,    58,    57,    59,    59,    59,    60,    60,
-      60,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60
+       0,    34,    35,    36,    37,    38,    39,    38,    41,    40,
+      42,    42,    43,    43,    44,    44,    45,    46,    46,    47,
+      48,    49,    48,    51,    52,    50,    50,    50,    50,    50,
+      50,    50,    53,    50,    50,    50,    54,    50,    55,    56,
+      55,    57,    57,    58,    59,    58,    60,    60,    60,    61,
+      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
+      61,    61
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     3,     0,     0,     0,     2,     0,    10,     1,
-       1,     0,     1,     1,     3,     2,     0,     2,     4,     1,
-       0,     3,     0,     0,     6,     3,     5,     4,     2,     2,
-       3,     0,     6,     2,     2,     0,     6,     1,     0,     4,
-       4,     3,     1,     0,     4,     1,     1,     1,     3,     3,
-       1,     1,     1,     2,     1,     1,     1,     2,     4,     4,
-       3
+       0,     2,     3,     0,     0,     0,     0,     3,     0,    10,
+       1,     1,     0,     1,     1,     3,     2,     0,     2,     4,
+       1,     0,     3,     0,     0,     6,     3,     5,     4,     2,
+       2,     3,     0,     6,     2,     2,     0,     7,     1,     0,
+       4,     4,     3,     1,     0,     4,     1,     1,     1,     3,
+       3,     1,     1,     1,     2,     1,     1,     1,     2,     4,
+       4,     3
 };
 
 
@@ -1335,8 +1339,9 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 52 "parser.ypp" /* yacc.c:1646  */
+#line 53 "parser.ypp" /* yacc.c:1646  */
     {
+
     if (!checkMainFuncLegal())
     {
         errorMainMissing();
@@ -1352,11 +1357,11 @@ yyreduce:
     return 0;
 
 }
-#line 1356 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1361 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 71 "parser.ypp" /* yacc.c:1646  */
+#line 73 "parser.ypp" /* yacc.c:1646  */
     {
     // start of global scope
     if (isDevStage) {
@@ -1374,7 +1379,7 @@ yyreduce:
 	initRegisters();
 
     // print
-    cf.emit("print_:");
+    cf.emit("_print:");
     cf.emit("lw $a0, 0($sp)");
     cf.emit("li $v0, 4");
     cf.emit("syscall");
@@ -1382,35 +1387,42 @@ yyreduce:
     cf.emit("jr $ra");
 
     // printi
-    cf.emit("printi_:");
+    cf.emit("_printi:");
     cf.emit("lw $a0, 0($sp)");
     cf.emit("li $v0, 1");
     cf.emit("syscall");
     cf.emit("addu $sp, $sp, 4");
     cf.emit("jr $ra");
 
-    cf.emitData("div_zero_error: .asciiz \"Error division by zero\\n\"");
-    cf.emit("div_zero :");
-    cf.emit("la $a0, div_zero_error");
+    // Division by zero handler
+    cf.emitData("div_by_zero_error: .asciiz \"Error division by zero\\n\"");
+    cf.emit("div_zero:");
+    cf.emit("la $a0, div_by_zero_error");
     cf.emit("li $v0, 4"); // Syscall to print
     cf.emit("syscall");
     cf.emit("li $v0, 10"); // Syscall to terminate
     cf.emit("syscall");
 }
-#line 1401 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1407 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 114 "parser.ypp" /* yacc.c:1646  */
+#line 118 "parser.ypp" /* yacc.c:1646  */
     {
     (yyval) = new Type();
 	(yyval)->label = cf.genLabel();
 }
-#line 1410 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1416 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 7:
+  case 6:
 #line 133 "parser.ypp" /* yacc.c:1646  */
+    {cf.printCodeBuffer();}
+#line 1422 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 8:
+#line 137 "parser.ypp" /* yacc.c:1646  */
     {
 	// check if id is free
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
@@ -1438,24 +1450,24 @@ yyreduce:
     }
 
     // HW5:
-    if (name == "main") {
-        cf.emit("main:");
-        cf.emit("subu $fp, $sp, 4");
-    }
-    else cf.emit(name + "_:");
+    if (name == "main") cf.emit("main:");
+    else cf.emit(name + "_f:");
+
+    cf.emit("move $fp, $sp");
+    cf.emit("subu $fp, 4");
 }
-#line 1448 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1460 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 8:
-#line 165 "parser.ypp" /* yacc.c:1646  */
+  case 9:
+#line 169 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-8]));
 	string name = id->name;
     currentReturnType = "";
 
     // HW5:
-    cf.bpatch((yyvsp[-2])->next_list,cf.genLabel()); //todo: check if this is correct
+    cf.bpatch((yyvsp[-1])->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -1470,39 +1482,39 @@ yyreduce:
     clearTempRegisters();
     cf.emit("jr $ra");
 }
-#line 1474 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 9:
-#line 188 "parser.ypp" /* yacc.c:1646  */
-    {(yyval) = (yyvsp[0]); currentReturnType = (yyvsp[0])->type;}
-#line 1480 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1486 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 188 "parser.ypp" /* yacc.c:1646  */
-    {(yyval) = new Type("VOID"); currentReturnType = "VOID";}
-#line 1486 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 192 "parser.ypp" /* yacc.c:1646  */
+    {(yyval) = (yyvsp[0]); currentReturnType = (yyvsp[0])->type;}
+#line 1492 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
 #line 192 "parser.ypp" /* yacc.c:1646  */
-    {
-	(yyval) = new MultiNameMultiTypeInfo();
-}
-#line 1494 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    {(yyval) = new Type("VOID"); currentReturnType = "VOID";}
+#line 1498 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
 #line 196 "parser.ypp" /* yacc.c:1646  */
     {
-	(yyval) = (yyvsp[0]);
+	(yyval) = new MultiNameMultiTypeInfo();
 }
-#line 1502 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1506 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 202 "parser.ypp" /* yacc.c:1646  */
+#line 200 "parser.ypp" /* yacc.c:1646  */
+    {
+	(yyval) = (yyvsp[0]);
+}
+#line 1514 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 206 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* formalDec = dynamic_cast<NameTypeInfo*>((yyvsp[0]));
 	vector<pair<string,string> > v;
@@ -1510,11 +1522,11 @@ yyreduce:
 
 	(yyval) = new MultiNameMultiTypeInfo(v);
 }
-#line 1514 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1526 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 14:
-#line 210 "parser.ypp" /* yacc.c:1646  */
+  case 15:
+#line 214 "parser.ypp" /* yacc.c:1646  */
     {
 	MultiNameMultiTypeInfo* formalList = dynamic_cast<MultiNameMultiTypeInfo*>((yyvsp[0]));
 	NameTypeInfo* formalDec = dynamic_cast<NameTypeInfo*>((yyvsp[-2]));
@@ -1523,11 +1535,11 @@ yyreduce:
 
 	(yyval) = new MultiNameMultiTypeInfo(v);
 }
-#line 1527 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1539 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 15:
-#line 221 "parser.ypp" /* yacc.c:1646  */
+  case 16:
+#line 225 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[0]));
 
@@ -1540,31 +1552,31 @@ yyreduce:
 
 	(yyval) = new NameTypeInfo((yyvsp[-1])->type, id->name);
 }
-#line 1544 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1556 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 16:
-#line 236 "parser.ypp" /* yacc.c:1646  */
+  case 17:
+#line 240 "parser.ypp" /* yacc.c:1646  */
     {
 	precondCnt = 0;
 
 	//todo: hw5
 }
-#line 1554 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1566 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 17:
-#line 242 "parser.ypp" /* yacc.c:1646  */
+  case 18:
+#line 246 "parser.ypp" /* yacc.c:1646  */
     {
 	precondCnt++;
 
 	//todo: hw5
 }
-#line 1564 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1576 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 18:
-#line 250 "parser.ypp" /* yacc.c:1646  */
+  case 19:
+#line 254 "parser.ypp" /* yacc.c:1646  */
     {
 	if (getExpType((yyvsp[-1])) != "BOOL") {
 	    errorMismatch(yylineno);
@@ -1574,28 +1586,28 @@ yyreduce:
 
 	//todo: hw5
 }
-#line 1578 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 19:
-#line 262 "parser.ypp" /* yacc.c:1646  */
-    {
-    (yyval) = (yyvsp[0]);
-}
-#line 1586 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1590 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 20:
 #line 266 "parser.ypp" /* yacc.c:1646  */
     {
-    if ((yyvsp[0])->next_list.size() > 0)
-        cf.bpatch((yyvsp[0])->next_list,cf.genLabel());
+    (yyval) = (yyvsp[0]);
 }
-#line 1595 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1598 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
 #line 270 "parser.ypp" /* yacc.c:1646  */
+    {
+    if ((yyvsp[0])->next_list.size() > 0)
+        cf.bpatch((yyvsp[0])->next_list,cf.genLabel());
+}
+#line 1607 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 22:
+#line 274 "parser.ypp" /* yacc.c:1646  */
     {
     (yyval) = (yyvsp[-2]);
     //todo check if this is correct
@@ -1603,11 +1615,11 @@ yyreduce:
     (yyval)->break_list = cf.merge((yyvsp[-2])->break_list,(yyvsp[-1])->break_list);
     (yyval)->continue_list = cf.merge((yyvsp[-2])->continue_list,(yyvsp[-1])->continue_list);
 }
-#line 1607 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1619 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 22:
-#line 279 "parser.ypp" /* yacc.c:1646  */
+  case 23:
+#line 283 "parser.ypp" /* yacc.c:1646  */
     {
     // start of block scope
     if (isDevStage) {
@@ -1615,11 +1627,11 @@ yyreduce:
     }
     openScope();
 }
-#line 1619 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1631 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 23:
-#line 285 "parser.ypp" /* yacc.c:1646  */
+  case 24:
+#line 289 "parser.ypp" /* yacc.c:1646  */
     {
     // end of block scope
     if (isDevStage) {
@@ -1634,11 +1646,11 @@ yyreduce:
     (yyval)->next_list = vector<int>();
 
 }
-#line 1638 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1650 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 25:
-#line 300 "parser.ypp" /* yacc.c:1646  */
+  case 26:
+#line 304 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-1]));
     string name = id->name;
@@ -1653,15 +1665,15 @@ yyreduce:
 	pushIdentifierToStack((yyvsp[-2])->type,id->name);
 
 	// HW5:
-	//todo: hw5 new node?
+	(yyval) = new Type();
     cf.emit("subu $sp, $sp, 4"); // Move stack pointer
     cf.emit("sw $0, 0($sp)"); // Initialize to zero
 }
-#line 1661 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1673 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 26:
-#line 319 "parser.ypp" /* yacc.c:1646  */
+  case 27:
+#line 323 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
 	string name = id->name;
@@ -1682,9 +1694,9 @@ yyreduce:
 
 	//HW5:
 	string type = (yyvsp[-4])->type;
+	int reg = getAvailableRegister();
+    setRegister(reg,false);
 	if (type == "BOOL") {
-	    int reg = getAvailableRegister();
-	    setRegister(reg,false);
         cf.bpatch((yyvsp[-1])->true_list,cf.genLabel());
         cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
         cf.emit("li $" + to_string(reg) + ", 1");
@@ -1703,11 +1715,11 @@ yyreduce:
        setRegister((yyvsp[-1])->reg,true); // Free exp register
 	}
 }
-#line 1707 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1719 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 27:
-#line 361 "parser.ypp" /* yacc.c:1646  */
+  case 28:
+#line 365 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
     string name = id->name;
@@ -1727,14 +1739,14 @@ yyreduce:
     // HW5:
     string expType = getExpType((yyvsp[-1]));
     SymbolTableEntry* e = getIdEntry(name,false);
+    int reg = getAvailableRegister();
+    setRegister(reg,false);
     if (expType == "BOOL")
     {
-        int reg = getAvailableRegister();
-        setRegister(reg,false);
         cf.bpatch((yyvsp[-1])->true_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 1");
         cf.emit("sw $"+ to_string(reg) +"," + to_string((-4) * e->offset) + "($fp)");
-        setRegister(reg,true); //not sure about this...
+        setRegister(reg,true);
         (yyval)->next_list = cf.makelist(cf.emit("j  "));
         cf.bpatch((yyvsp[-1])->false_list,cf.genLabel());
         cf.emit("sw $0," + to_string((-4) * e->offset) + "($fp)");
@@ -1745,36 +1757,38 @@ yyreduce:
         setRegister((yyvsp[-1])->reg, true);
     }
 }
-#line 1749 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 28:
-#line 399 "parser.ypp" /* yacc.c:1646  */
-    {
-    (yyval) = (yyvsp[-1]);
-
-    //todo: hw5
-    // HW5:
-    setRegister((yyvsp[-1])->reg,true);
-    (yyval)->next_list = cf.merge((yyvsp[-1])->true_list,(yyvsp[-1])->false_list);
-}
-#line 1762 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1761 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 408 "parser.ypp" /* yacc.c:1646  */
+#line 403 "parser.ypp" /* yacc.c:1646  */
+    {
+    // HW5:
+    (yyval) = new Type();
+    setRegister((yyvsp[-1])->reg,true);
+    (yyval)->next_list = cf.merge((yyvsp[-1])->true_list,(yyvsp[-1])->false_list);
+}
+#line 1772 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 30:
+#line 410 "parser.ypp" /* yacc.c:1646  */
     {
 	if (currentReturnType!="VOID")
 	{
 		errorMismatch(yylineno);
 		exit(0);
 	}
+
+	(yyval) = new Type();
+	//todo: empty_func_stack()?
+	cf.emit("jr $ra");
 }
-#line 1774 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1788 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 30:
-#line 416 "parser.ypp" /* yacc.c:1646  */
+  case 31:
+#line 422 "parser.ypp" /* yacc.c:1646  */
     {
     if (currentReturnType!="INT" && currentReturnType != "BYTE" && currentReturnType != "BOOL")
     {
@@ -1810,11 +1824,11 @@ yyreduce:
 
     clearTempRegisters();
 }
-#line 1814 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1828 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 31:
-#line 451 "parser.ypp" /* yacc.c:1646  */
+  case 32:
+#line 457 "parser.ypp" /* yacc.c:1646  */
     {
 	whileLoopCnt++;
 	if (getExpType((yyvsp[-1])) != "BOOL")
@@ -1824,11 +1838,11 @@ yyreduce:
 	}
 	openScope();
 }
-#line 1828 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1842 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 32:
-#line 460 "parser.ypp" /* yacc.c:1646  */
+  case 33:
+#line 466 "parser.ypp" /* yacc.c:1646  */
     {
 	whileLoopCnt--;
 	endScope();
@@ -1836,11 +1850,11 @@ yyreduce:
 
 	//todo: hw5
 }
-#line 1840 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1854 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 33:
-#line 468 "parser.ypp" /* yacc.c:1646  */
+  case 34:
+#line 474 "parser.ypp" /* yacc.c:1646  */
     {
 	if (whileLoopCnt == 0)
 	{
@@ -1852,11 +1866,11 @@ yyreduce:
     (yyval) = new Type();
     (yyval)->break_list = cf.makelist(cf.emit("j "));
 }
-#line 1856 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1870 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 34:
-#line 480 "parser.ypp" /* yacc.c:1646  */
+  case 35:
+#line 486 "parser.ypp" /* yacc.c:1646  */
     {
 	//todo: hw5 while table?
 	if (whileLoopCnt == 0)
@@ -1868,28 +1882,28 @@ yyreduce:
 	(yyval) = new Type();
 	(yyval)->continue_list = cf.makelist(cf.emit("j  "));
 }
-#line 1872 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1886 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 35:
-#line 491 "parser.ypp" /* yacc.c:1646  */
+  case 36:
+#line 497 "parser.ypp" /* yacc.c:1646  */
     {
     if (isDevStage) {
         cout << "DEBUG: start of if scope" << endl;
     }
 
-    if (getExpType((yyvsp[-1])) != "BOOL") {
+    if (getExpType((yyvsp[-2])) != "BOOL") {
         errorMismatch(yylineno);
         exit(0);
     }
 
     openScope();
 }
-#line 1889 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1903 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 37:
-#line 506 "parser.ypp" /* yacc.c:1646  */
+  case 38:
+#line 512 "parser.ypp" /* yacc.c:1646  */
     {
     if (isDevStage) {
         cout << "DEBUG: end of if scope" << endl;
@@ -1897,11 +1911,11 @@ yyreduce:
     endScope(); // print "end scope" message
     closeScope();
 }
-#line 1901 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1915 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 38:
-#line 514 "parser.ypp" /* yacc.c:1646  */
+  case 39:
+#line 520 "parser.ypp" /* yacc.c:1646  */
     {
     if (isDevStage) {
         cout << "DEBUG: end of if scope (with ELSE)" << endl;
@@ -1911,17 +1925,17 @@ yyreduce:
     closeScope();
     openScope();
 }
-#line 1915 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 39:
-#line 522 "parser.ypp" /* yacc.c:1646  */
-    {endScope(); closeScope();}
-#line 1921 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 1929 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 526 "parser.ypp" /* yacc.c:1646  */
+#line 528 "parser.ypp" /* yacc.c:1646  */
+    {endScope(); closeScope();}
+#line 1935 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 41:
+#line 532 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-3]));
     string name = id->name;
@@ -1948,7 +1962,21 @@ yyreduce:
     (yyval) = new Type(type);
 
     //HW5
-    //todo backup used registers
+    vector<int> argumentsRegs = expList->registers;
+    vector<int> backupRegisters;
+
+    // backup register only if it is used and not by arguments
+    for (int i=8; i<=25; ++i)
+    {
+        if (isRegisterAvailable(i) == false && find(argumentsRegs.begin(), argumentsRegs.end(), i) == argumentsRegs.end())
+            {
+                cf.emit("subu $sp, $sp, 4");
+                cf.emit("sw $" + to_string(i) + ", ($sp)");
+                backupRegisters.push_back(i);
+            }
+    }
+
+
 
     //Push $fp and $ra to stack
     cf.emit("subu $sp, $sp, 4");
@@ -1958,26 +1986,58 @@ yyreduce:
 
     //Push function's arguments on stack
     cout << "test: " << expList->registers[0] << endl;
-    cf.emit("subu $sp, $sp, 4");
-    cf.emit("sw $" + to_string((yyvsp[-2])->reg) + ", ($sp)");
-    setRegister((yyvsp[-2])->reg,true);
+
+    for (int i = exp_args_types.size()-1; i>=0; --i)
+    {
+        cf.emit("subu $sp, $sp, 4");
+        cf.emit("sw $"+ to_string(argumentsRegs[i]) + ", ($sp)");
+        setRegister(argumentsRegs[i],true);
+    }
+
+    // not sure if this code is correct...
+   // cf.emit("subu $sp, $sp, 4");
+    //cf.emit("sw $" + to_string($2->reg) + ", ($sp)");
+   // setRegister($2->reg,true);
 
     clearTempRegisters();
 
-    if (name == "main") {
-        cf.emit("jal main");
-    }
-    else {
-        cf.emit("jal _" + name);
+    cf.emit("subu $fp, $sp, 4");
+
+    if (name == "main") cf.emit("jal main");
+    else cf.emit("jal _" + name);
+
+    cf.emit("lw $ra, ($sp)");
+    cf.emit("addu $sp, $sp, 4");
+    cf.emit("lw $fp, ($sp)");
+    cf.emit("addu $sp, $sp, 4");
+
+    //Restore backuped registers
+    for (int i=0; i < backupRegisters.size(); ++i)
+    {
+        cf.emit("lw $" + to_string(backupRegisters[i]) + ", ($sp)");
+        cf.emit("addu $sp, $sp, 4");
+        setRegister(backupRegisters[i], false);
     }
 
+    if (type == "BOOL"){
+        int quad = cf.emit("beq $v0, 0, ");
+        (yyval)->true_list = cf.makelist(cf.emit("j "));
+        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        (yyval)->false_list=cf.makelist(cf.emit("j "));
+    }
+    else
+    {
+        int reg = getAvailableRegister();
+        cf.emit("add $" + to_string(reg) + ", $v0, 0");
+        (yyval)->reg = reg;
+    }
 
 }
-#line 1977 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2037 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 41:
-#line 578 "parser.ypp" /* yacc.c:1646  */
+  case 42:
+#line 630 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[-2]));
     string name = id->name;
@@ -2018,9 +2078,10 @@ yyreduce:
     cf.emit("sw $fp, ($sp)");
     cf.emit("subu $sp, $sp, 4");
     cf.emit("sw $ra, ($sp)");
-    clearTempRegisters();
-    cf.emit("subu $fp, $sp, 4");
 
+    clearTempRegisters();
+
+    cf.emit("subu $fp, $sp, 4");
     if (name != "main") name = name + "_";
     cf.emit("jal " + name);
     cf.emit("lw $ra, ($sp)");
@@ -2049,40 +2110,11 @@ yyreduce:
         (yyval)->reg = reg;
     }
 }
-#line 2053 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 42:
-#line 652 "parser.ypp" /* yacc.c:1646  */
-    {
-    // HW5:
-    string expType = getExpType((yyvsp[0]));
-    int reg;
-    if (expType == "BOOL"){
-        reg = getAvailableRegister();
-        setRegister(reg,false);
-        cf.bpatch((yyvsp[0])->true_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 1");
-        int quad = cf.emit("j  ");
-        cf.bpatch((yyvsp[0])->false_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 0");
-        cf.bpatch(cf.makelist(quad),cf.genLabel());
-    }
-    else if (expType == "STRING")
-    {
-        reg = getAvailableRegister();
-        setRegister(reg,false);
-        cf.emit("la $" + to_string(reg) + ", " + (yyvsp[0])->label);
-    }
-    else reg = (yyvsp[0])->reg;
-
-    (yyval) = new NameMultiTypeInfo(getExpType((yyvsp[0])), reg);
-}
-#line 2082 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2114 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 677 "parser.ypp" /* yacc.c:1646  */
+#line 705 "parser.ypp" /* yacc.c:1646  */
     {
     // HW5:
     string expType = getExpType((yyvsp[0]));
@@ -2107,11 +2139,40 @@ yyreduce:
 
     (yyval) = new NameMultiTypeInfo(getExpType((yyvsp[0])), reg);
 }
-#line 2111 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2143 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 702 "parser.ypp" /* yacc.c:1646  */
+#line 730 "parser.ypp" /* yacc.c:1646  */
+    {
+    // HW5:
+    string expType = getExpType((yyvsp[0]));
+    int reg;
+    if (expType == "BOOL"){
+        reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.bpatch((yyvsp[0])->true_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 1");
+        int quad = cf.emit("j  ");
+        cf.bpatch((yyvsp[0])->false_list,cf.genLabel());
+        cf.emit("li $" + to_string(reg) + ", 0");
+        cf.bpatch(cf.makelist(quad),cf.genLabel());
+    }
+    else if (expType == "STRING")
+    {
+        reg = getAvailableRegister();
+        setRegister(reg,false);
+        cf.emit("la $" + to_string(reg) + ", " + (yyvsp[0])->label);
+    }
+    else reg = (yyvsp[0])->reg;
+
+    (yyval) = new NameMultiTypeInfo(getExpType((yyvsp[0])), reg);
+}
+#line 2172 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 45:
+#line 755 "parser.ypp" /* yacc.c:1646  */
     {
 	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>((yyvsp[-1]));
 	vector<string> types = expList->types;
@@ -2125,37 +2186,37 @@ yyreduce:
 	(yyval) = new NameMultiTypeInfo(types,regs); //HW5
 
 }
-#line 2129 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 45:
-#line 717 "parser.ypp" /* yacc.c:1646  */
-    {(yyval) = new Type("INT");}
-#line 2135 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2190 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 717 "parser.ypp" /* yacc.c:1646  */
-    {(yyval) = new Type("BYTE");}
-#line 2141 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 770 "parser.ypp" /* yacc.c:1646  */
+    {(yyval) = new Type("INT");}
+#line 2196 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 717 "parser.ypp" /* yacc.c:1646  */
-    {(yyval) = new Type("BOOL");}
-#line 2147 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 770 "parser.ypp" /* yacc.c:1646  */
+    {(yyval) = new Type("BYTE");}
+#line 2202 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 721 "parser.ypp" /* yacc.c:1646  */
-    {
-	(yyval) = (yyvsp[-1]);
-}
-#line 2155 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 770 "parser.ypp" /* yacc.c:1646  */
+    {(yyval) = new Type("BOOL");}
+#line 2208 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 725 "parser.ypp" /* yacc.c:1646  */
+#line 774 "parser.ypp" /* yacc.c:1646  */
+    {
+	(yyval) = (yyvsp[-1]);
+}
+#line 2216 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 50:
+#line 778 "parser.ypp" /* yacc.c:1646  */
     {
 	if (!isValidBinOp((yyvsp[-2]), (yyvsp[0]))) {
 	    errorMismatch(yylineno);
@@ -2188,11 +2249,11 @@ yyreduce:
 
     (yyval)->reg = (yyvsp[-2])->reg;
 }
-#line 2192 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2253 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 50:
-#line 758 "parser.ypp" /* yacc.c:1646  */
+  case 51:
+#line 811 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>((yyvsp[0]));
 	string name = id->name;
@@ -2221,19 +2282,19 @@ yyreduce:
     else
         (yyval)->reg = reg;
 }
-#line 2225 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
-    break;
-
-  case 51:
-#line 787 "parser.ypp" /* yacc.c:1646  */
-    {
-	(yyval) = new Type(getExpType((yyvsp[0])));
-}
-#line 2233 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2286 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 791 "parser.ypp" /* yacc.c:1646  */
+#line 840 "parser.ypp" /* yacc.c:1646  */
+    {
+	(yyval) = new Type(getExpType((yyvsp[0])));
+}
+#line 2294 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 53:
+#line 844 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = (yyvsp[0]);
 
@@ -2245,11 +2306,11 @@ yyreduce:
     // Save NUM's value to register
     cf.emit("li $" + to_string(reg) + ", " + num->name);
 }
-#line 2249 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2310 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 53:
-#line 803 "parser.ypp" /* yacc.c:1646  */
+  case 54:
+#line 856 "parser.ypp" /* yacc.c:1646  */
     {
 	NameTypeInfo* numId = dynamic_cast<NameTypeInfo*>((yyvsp[-1]));
 	int num = atoi(numId->name.c_str());
@@ -2268,11 +2329,11 @@ yyreduce:
     setRegister(reg,false);
     cf.emit("li $" + to_string(reg) + ", " + numId->name);
 }
-#line 2272 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2333 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 54:
-#line 822 "parser.ypp" /* yacc.c:1646  */
+  case 55:
+#line 875 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type("STRING");
 
@@ -2284,33 +2345,33 @@ yyreduce:
 	cf.emitData(label + ": .asciiz " + string_content);
 	(yyval)->label = label;
 }
-#line 2288 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2349 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 55:
-#line 834 "parser.ypp" /* yacc.c:1646  */
+  case 56:
+#line 887 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type("BOOL");
 
 	// HW5:
 	(yyval)->true_list = cf.makelist(cf.emit("j "));
 }
-#line 2299 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2360 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 56:
-#line 841 "parser.ypp" /* yacc.c:1646  */
+  case 57:
+#line 894 "parser.ypp" /* yacc.c:1646  */
     {
 	(yyval) = new Type("BOOL");
 
 	// HW5:
 	(yyval)->false_list = cf.makelist(cf.emit("j "));
 }
-#line 2310 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2371 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 57:
-#line 848 "parser.ypp" /* yacc.c:1646  */
+  case 58:
+#line 901 "parser.ypp" /* yacc.c:1646  */
     {
 	checkExpressionType((yyvsp[0]),"BOOL",yylineno);
 	(yyval) = new Type("BOOL");
@@ -2319,11 +2380,11 @@ yyreduce:
     (yyval)->true_list = (yyvsp[0])->false_list;
     (yyval)->false_list = (yyvsp[0])->true_list;
 }
-#line 2323 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2384 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 58:
-#line 857 "parser.ypp" /* yacc.c:1646  */
+  case 59:
+#line 910 "parser.ypp" /* yacc.c:1646  */
     {
 	checkExpressionType((yyvsp[-3]),"BOOL",yylineno);
 	checkExpressionType((yyvsp[-1]),"BOOL",yylineno);
@@ -2334,11 +2395,11 @@ yyreduce:
     (yyval)->true_list = (yyvsp[0])->true_list;
     (yyval)->false_list = cf.merge((yyvsp[-3])->false_list,(yyvsp[0])->false_list);
 }
-#line 2338 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2399 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 59:
-#line 868 "parser.ypp" /* yacc.c:1646  */
+  case 60:
+#line 921 "parser.ypp" /* yacc.c:1646  */
     {
 	checkExpressionType((yyvsp[-3]),"BOOL",yylineno);
 	checkExpressionType((yyvsp[-1]),"BOOL",yylineno);
@@ -2349,11 +2410,11 @@ yyreduce:
     (yyval)->true_list = cf.merge((yyvsp[-3])->true_list,(yyvsp[0])->true_list);
     (yyval)->false_list = (yyvsp[0])->false_list;
 }
-#line 2353 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2414 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
-  case 60:
-#line 879 "parser.ypp" /* yacc.c:1646  */
+  case 61:
+#line 932 "parser.ypp" /* yacc.c:1646  */
     {
     string type_right_exp = getExpType((yyvsp[0]));
     string type_left_exp = getExpType((yyvsp[-2]));
@@ -2379,11 +2440,11 @@ yyreduce:
 	setRegister((yyvsp[-2])->reg,true);
 	setRegister((yyvsp[0])->reg,true);
 }
-#line 2383 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2444 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2387 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
+#line 2448 "/cygdrive/c/compi-hw5/cmake-build-debug/parser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2611,7 +2672,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 906 "parser.ypp" /* yacc.c:1906  */
+#line 959 "parser.ypp" /* yacc.c:1906  */
 
 
 void yyerror(const char * message)
@@ -2625,6 +2686,8 @@ int main() {
 	yyparse();
 
 	//HW5
+	cout << "came here" << endl;
+	cf.printCodeBuffer();
     cf.printDataBuffer();
-    cf.printCodeBuffer();
+
 }

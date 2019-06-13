@@ -97,6 +97,8 @@ stdlib.h
 -
 string
 -
+algorithm
+-
 source.hpp
 /cygdrive/c/compi-hw5/cmake-build-debug/source.hpp
 output.hpp
