@@ -517,15 +517,13 @@ Statement : LBRACE {
     openScope();
 } SelectionStatement NewLabel{
     // HW5
-    cf.bpatch($3->true_list,$5->label);
-    cf.bpatch($3->false_list,$8->label);
-
-    //$$->next_list = cf.merge($3->false_list,$3->next_list);
     $$ = $7;
+    cf.bpatch($3->true_list,$5->label);
+    cf.bpatch($3->false_list,$7->label);
 }
 ;
 
-SelectionStatement: Statement // IF without ELSE
+SelectionStatement: Statement NewLabel // IF without ELSE
 {
     if (isDevStage) {
         cout << "DEBUG: end of if scope" << endl;
@@ -535,9 +533,10 @@ SelectionStatement: Statement // IF without ELSE
 
     // HW5
     $$ = $1;
-
+    $$->label = $2->label;
+    $$->next_list = $1->next_list;
 } %prec CONFLICT
-| Statement ELSE // IF with ELSE
+| Statement ELSE NewNextList// IF with ELSE
 {
     if (isDevStage) {
         cout << "DEBUG: end of if scope (with ELSE)" << endl;
@@ -547,15 +546,13 @@ SelectionStatement: Statement // IF without ELSE
     closeScope();
     openScope();
 
-    // HW5
-    $$ = $1;
-
-} Statement {
+} NewLabel Statement {
     endScope();
     closeScope();
 
     // HW5
-    $$ = $1;
+    $$->label = $5->label;
+    $$->next_list = cf.merge(cf.merge($1->next_list, $3->next_list), $6->next_list);
 }
 ;
 
