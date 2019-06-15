@@ -32,7 +32,7 @@ struct Mips {
         cf.emit("subu $sp, $sp, 4");
         cf.emit("sw $" + to_string(reg) + ", ($sp)");
         stack.push(registers_pool[reg]);
-        free_registers[reg] = false;
+        free_registers[reg] = true;
 
         if (commentsIsOn) {
             cf.emit("");
@@ -47,7 +47,7 @@ struct Mips {
         cf.emit("lw $" + to_string(reg) + ", ($sp)");
         cf.emit("addu $sp, $sp, 4");
         stack.pop();
-        free_registers[reg] = true;
+        free_registers[reg] = false;
 
         if (commentsIsOn) {
             cf.emit("");
@@ -61,6 +61,19 @@ struct Mips {
 
         cf.emit("addu $sp, $sp, 4");
         stack.pop();
+
+        if (commentsIsOn) {
+            cf.emit("");
+        }
+    }
+
+    void setOnFrame(int reg, int offset) {
+        if (commentsIsOn) {
+            cf.emit("# set $" + to_string(reg) + " on " + to_string(offset) + "th place of frame");
+        }
+
+        cf.emit("sw $" + to_string(reg) + "," + to_string((-4) * offset) + "($fp)");
+        free_registers[reg] = true;
 
         if (commentsIsOn) {
             cf.emit("");
@@ -102,6 +115,8 @@ struct Mips {
             cf.emit("");
         }
     }
+
+    void setRegister() {}
 
 };
 

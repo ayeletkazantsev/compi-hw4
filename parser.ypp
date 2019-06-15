@@ -172,7 +172,8 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     }
 
     //set frame for calle
-    m.assign(FP, SP);
+    cf.emit("#set frame for calle");
+    cf.emit("subu $fp, $sp, 4"); // move the fp
 
 } PreConditions LBRACE Statements RBRACE {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
@@ -276,7 +277,6 @@ Statements : Statement
 }
 | Statements
 {
-    //cout << "here 1" << endl;
     if ($1->next_list.size() > 0)
         m.bpatch($1->next_list,cf.genLabel());
 } Statement
@@ -284,9 +284,9 @@ Statements : Statement
     //cout << "here 2" << endl;
     $$ = $1;
     //todo check if this is correct
-    $$->next_list = $2->next_list;
-    $$->break_list = cf.merge($1->break_list,$2->break_list);
-    $$->continue_list = cf.merge($1->continue_list,$2->continue_list);
+    $$->next_list = $3->next_list;
+    $$->break_list = cf.merge($1->break_list,$3->break_list);
+    $$->continue_list = cf.merge($1->continue_list,$3->continue_list);
 }
 ;
 
@@ -296,19 +296,19 @@ Statement : LBRACE {
         cout << "DEBUG: start of block scope" << endl;
     }
     openScope();
-} Statements NewLabel {
+} Statements {
     // end of block scope
     if (isDevStage) {
         cout << "DEBUG: end of block scope" << endl;
     }
     endScope(); // print "end scope" message
     closeScope();
+} RBRACE NewLabel {
     // HW5:
-    m.bpatch($2->next_list,$3->label);
-    $$ = $2;
+    m.bpatch($3->next_list,$6->label);
+    $$ = $3;
     $$->next_list = vector<int>();
-
-} RBRACE
+}
 | Type ID SC
 {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
@@ -365,8 +365,7 @@ Statement : LBRACE {
 	else
 	{
        // Push expression ($4) to stack; Allocate local variable on stack
-       cf.emit("subu $sp, $sp, 4");
-       cf.emit("sw $" + to_string($4->reg) + ", 0($sp)");
+       m.pushToStack($4->reg);
        setRegister($4->reg,true); // Free exp register
 	}
 }
@@ -404,7 +403,7 @@ Statement : LBRACE {
     }
     else
     {
-        cf.emit("sw $" + to_string($3->reg) + "," + to_string((-4) * e->offset) + "($fp)");
+        m.setOnFrame($3->reg, e->offset);
         setRegister($3->reg, true);
     }
 }
@@ -425,7 +424,7 @@ Statement : LBRACE {
 
 	$$ = new Type();
 	//todo: empty_func_stack()?
-	cf.emit("jr $ra");
+	m.jump(RA);
 }
 | RETURN Exp SC 
 {
@@ -458,7 +457,7 @@ Statement : LBRACE {
         // Clear local variables
         cf.emit("add $v0, $" + to_string($2->reg) + ", 0");
         //TODO: empty_func_stack();
-        cf.emit("jr $ra");
+        m.jump(RA);
     }
 
     clearTempRegisters();
