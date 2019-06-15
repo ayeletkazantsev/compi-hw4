@@ -91,6 +91,18 @@ struct Mips {
         }
     }
 
+    void bpatch(const vector<int>& l, const std::string &label) {
+        if (commentsIsOn) {
+            cf.emit("# backpatching " + label);
+        }
+
+        cf.bpatch(l,label);
+
+        if (commentsIsOn) {
+            cf.emit("");
+        }
+    }
+
 };
 
 #endif //HW3_MIPS_H

@@ -180,7 +180,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     currentReturnType = "";
 
     // HW5:
-    cf.bpatch($9->next_list,cf.genLabel()); //todo: check if this is correct
+    m.bpatch($9->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -278,7 +278,7 @@ Statements : Statement
 {
     //cout << "here 1" << endl;
     if ($1->next_list.size() > 0)
-        cf.bpatch($1->next_list,cf.genLabel());
+        m.bpatch($1->next_list,cf.genLabel());
 } Statement
 {
     //cout << "here 2" << endl;
@@ -303,9 +303,8 @@ Statement : LBRACE {
     }
     endScope(); // print "end scope" message
     closeScope();
-
     // HW5:
-    cf.bpatch($2->next_list,$3->label);
+    m.bpatch($2->next_list,$3->label);
     $$ = $2;
     $$->next_list = vector<int>();
 
@@ -353,13 +352,13 @@ Statement : LBRACE {
 	int reg = getAvailableRegister();
     setRegister(reg,false);
 	if (type == "BOOL") {
-        cf.bpatch($4->true_list,cf.genLabel());
+        m.bpatch($4->true_list,cf.genLabel());
         cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
         cf.emit("li $" + to_string(reg) + ", 1");
         cf.emit("sw $"+ to_string(reg) +", 0($sp)");
         setRegister(reg,true);
         $$->next_list = cf.makelist(cf.emit("j  "));
-        cf.bpatch($4->false_list,cf.genLabel());
+        m.bpatch($4->false_list,cf.genLabel());
         cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
         cf.emit("sw $0, 0($sp)");
 	}
@@ -395,12 +394,12 @@ Statement : LBRACE {
     setRegister(reg,false);
     if (expType == "BOOL")
     {
-        cf.bpatch($3->true_list,cf.genLabel());
+        m.bpatch($3->true_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 1");
         cf.emit("sw $"+ to_string(reg) +"," + to_string((-4) * e->offset) + "($fp)");
         setRegister(reg,true);
         $$->next_list = cf.makelist(cf.emit("j  "));
-        cf.bpatch($3->false_list,cf.genLabel());
+        m.bpatch($3->false_list,cf.genLabel());
         cf.emit("sw $0," + to_string((-4) * e->offset) + "($fp)");
     }
     else
@@ -445,12 +444,12 @@ Statement : LBRACE {
     string type = getExpType($2);
     if (type == "BOOL")
     {
-        cf.bpatch($2->true_list,cf.genLabel());
+        m.bpatch($2->true_list,cf.genLabel());
         cf.emit("li $v0, 1");
         int quad = cf.emit("j ");
-        cf.bpatch($2->false_list,cf.genLabel());
+        m.bpatch($2->false_list,cf.genLabel());
         cf.emit("li $v0, 0");
-        cf.bpatch(cf.makelist(quad), cf.genLabel());
+        m.bpatch(cf.makelist(quad), cf.genLabel());
         //empty_func_stack();
         cf.emit("jr $ra");
     }
@@ -518,8 +517,8 @@ Statement : LBRACE {
 } SelectionStatement NewLabel{
     // HW5
     $$ = $7;
-    cf.bpatch($3->true_list,$5->label);
-    cf.bpatch($3->false_list,$7->label);
+    m.bpatch($3->true_list,$5->label);
+    m.bpatch($3->false_list,$7->label);
 }
 ;
 
@@ -663,7 +662,7 @@ Call : ID LPAREN ExpList RPAREN
     if (type == "BOOL"){
         int quad = cf.emit("beq $v0, 0, ");
         $$->true_list = cf.makelist(cf.emit("j "));
-        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        m.bpatch(cf.makelist(quad),cf.genLabel());
         $$->false_list=cf.makelist(cf.emit("j "));
     }
     else
@@ -738,7 +737,7 @@ Call : ID LPAREN ExpList RPAREN
     {
         int quad = cf.emit("beq $v0, 0, ");
         $$->true_list = cf.makelist(cf.emit("j "));
-        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        m.bpatch(cf.makelist(quad),cf.genLabel());
         $$->false_list=cf.makelist(cf.emit("j "));
     }
     else
@@ -758,12 +757,12 @@ ExpList : Exp
     if (expType == "BOOL"){
         reg = getAvailableRegister();
         setRegister(reg,false);
-        cf.bpatch($1->true_list,cf.genLabel());
+        m.bpatch($1->true_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 1");
         int quad = cf.emit("j  ");
-        cf.bpatch($1->false_list,cf.genLabel());
+        m.bpatch($1->false_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 0");
-        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        m.bpatch(cf.makelist(quad),cf.genLabel());
     }
     else if (expType == "STRING")
     {
@@ -784,12 +783,12 @@ ExpList : Exp
     if (expType == "BOOL"){
         reg = getAvailableRegister();
         setRegister(reg,false);
-        cf.bpatch($1->true_list,cf.genLabel());
+        m.bpatch($1->true_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 1");
         int quad = cf.emit("j  ");
-        cf.bpatch($1->false_list,cf.genLabel());
+        m.bpatch($1->false_list,cf.genLabel());
         cf.emit("li $" + to_string(reg) + ", 0");
-        cf.bpatch(cf.makelist(quad),cf.genLabel());
+        m.bpatch(cf.makelist(quad),cf.genLabel());
     }
     else if (expType == "STRING")
     {
@@ -964,7 +963,7 @@ Exp : LPAREN Exp RPAREN
 	$$ = new Type("BOOL");
 
     // HW5:
-    cf.bpatch($1->true_list,$3->label);
+    m.bpatch($1->true_list,$3->label);
     $$->true_list = $4->true_list;
     $$->false_list = cf.merge($1->false_list,$4->false_list);
 }
@@ -975,7 +974,7 @@ Exp : LPAREN Exp RPAREN
 	$$ = new Type("BOOL");
 
 	// HW5:
-    cf.bpatch($1->false_list,$3->label);
+    m.bpatch($1->false_list,$3->label);
     $$->true_list = cf.merge($1->true_list,$4->true_list);
     $$->false_list = $4->false_list;
 }
