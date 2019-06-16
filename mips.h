@@ -46,9 +46,11 @@ struct Mips {
 
         cf.emit("lw $" + to_string(reg) + ", ($sp)");
         cf.emit("addu $sp, $sp, 4");
-        stack.pop();
-        free_registers[reg] = false;
 
+        free_registers[reg] = false;
+        registers_pool[reg] = stack.top();
+
+        stack.pop();
         if (commentsIsOn) {
             cf.emit("");
         }

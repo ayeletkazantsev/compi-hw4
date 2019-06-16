@@ -171,7 +171,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
 
     //set frame for calle
     m.debugPrint("Calle's (" + name + ") frame start (FP=SP)");
-    cf.emit("move $fp, $sp"); // move the fp
+    cf.emit("subu $fp, $sp, 4"); // move the fp
 
 } PreConditions LBRACE Statements RBRACE {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
@@ -192,7 +192,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
 
     //HW5
     clearTempRegisters();
-    cf.emit("move $sp, $fp"); // move the fp
+    //cf.emit("move $sp, $fp"); // move the fp
     cf.emit("jr $ra");
 }
 ;
@@ -578,14 +578,10 @@ Call : ID LPAREN ExpList RPAREN
 
     string type = getExpFuncReturnType($1);
     $$ = new Type(type);
-    // todo store return value in $v0
-    int reg = getAvailableRegister();
-    $$->reg = reg;
-    setRegister(reg, false);
 
     //HW5
 
-    m.debugPrint("Activation record start");
+    m.debugPrint("Caller's set activation record for " + name);
     // ==================== [Start] Activation record - Caller's frame ====================
 
     vector<int> argumentsRegs = expList->registers;
@@ -600,8 +596,7 @@ Call : ID LPAREN ExpList RPAREN
                 m.pushToStack(i);
                 backupRegisters.push_back(i);
                 setRegister(i, true);
-                //cout << "pushed saved register " << i << endl;
-                //cout << "calle is " << name << endl;
+                m.debugPrint("\t pushed saved register $" + to_string(i));
             }
     }
     //clearTempRegisters(); // todo add assert - all temp registers are free to use
@@ -620,6 +615,7 @@ Call : ID LPAREN ExpList RPAREN
     {
         m.pushToStack(argumentsRegs[i]);
         setRegister(argumentsRegs[i],true);
+        m.debugPrint("\t pushed arg from $" + to_string(argumentsRegs[i]));
     }
 
     //cf.emit("subu $fp, $sp, 4"); // start new frame for current function (named ID)
@@ -660,6 +656,7 @@ Call : ID LPAREN ExpList RPAREN
     {
         m.popFromStack(backupRegisters[i]);
         setRegister(backupRegisters[i], false);
+        m.debugPrint("\t popped saved register $" + to_string(backupRegisters[i]));
     }
 
     //cout << "stack size after is: " << m.stack.size() << endl;
@@ -674,6 +671,8 @@ Call : ID LPAREN ExpList RPAREN
     {
         // store function result in reg (result was stored on $v0 by calle?)
         int reg = getAvailableRegister();
+        setRegister(reg,false);
+        m.debugPrint(to_string(reg) + " used for result value of " + name);
         cf.emit("add $" + to_string(reg) + ", $v0, 0");
         $$->reg = reg;
     }
@@ -880,6 +879,7 @@ Exp : LPAREN Exp RPAREN
     int reg = getAvailableRegister();
     setRegister(reg,false);
     SymbolTableEntry* e=getIdEntry(name,false);
+    m.debugPrint(to_string(reg) + " used for ID: " + name);
     cf.emit("lw $" + to_string(reg) + ", " + to_string((-4)*(e->offset)) + "($fp)");
 
     if (type == "BOOL")
@@ -904,6 +904,7 @@ Exp : LPAREN Exp RPAREN
     int reg = getAvailableRegister();
     $$->reg = reg;
     setRegister(reg,false);
+    m.debugPrint(" " + to_string(reg) + " used for NUM");
     // Save NUM's value to register
     cf.emit("li $" + to_string(reg) + ", " + num->name);
 }
