@@ -192,7 +192,6 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
 
     //HW5
     clearTempRegisters();
-    //cf.emit("move $sp, $fp"); // move the fp
     cf.emit("jr $ra");
 }
 ;
@@ -965,7 +964,7 @@ Exp : LPAREN Exp RPAREN
 | Exp AND NewLabel Exp
 {
 	checkExpressionType($1,"BOOL",yylineno);
-	checkExpressionType($3,"BOOL",yylineno);
+	checkExpressionType($4,"BOOL",yylineno);
 	$$ = new Type("BOOL");
 
     // HW5:
@@ -976,9 +975,8 @@ Exp : LPAREN Exp RPAREN
 | Exp OR NewLabel Exp
 {
 	checkExpressionType($1,"BOOL",yylineno);
-	checkExpressionType($3,"BOOL",yylineno);
+	checkExpressionType($4,"BOOL",yylineno);
 	$$ = new Type("BOOL");
-
 	// HW5:
     m.bpatch($1->false_list,$3->label);
     $$->true_list = cf.merge($1->true_list,$4->true_list);
