@@ -118,6 +118,10 @@ struct Mips {
 
     void setRegister() {}
 
+    void debugPrint(const string &str) {
+        cout << "# DEBUG: " << str << endl;
+    }
+
 };
 
 #endif //HW3_MIPS_H
