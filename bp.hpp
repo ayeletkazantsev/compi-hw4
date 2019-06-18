@@ -3,6 +3,10 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
+
+using namespace std;
+
 
 class CodeBuffer{
 	CodeBuffer();

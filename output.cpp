@@ -1,5 +1,6 @@
 #include <iostream>
 #include "output.hpp"
+#include <string>
 #include <sstream>
 
 using namespace std;

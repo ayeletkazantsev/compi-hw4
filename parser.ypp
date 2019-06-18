@@ -53,7 +53,6 @@ CodeBuffer &cf = m.cf;
 
 Program : M Funcs END_OF_FILE
 {
-
     if (!checkMainFuncLegal())
     {
         errorMainMissing();
@@ -66,8 +65,8 @@ Program : M Funcs END_OF_FILE
     }
     endScope();
     closeScope(); // pop symbol & offset tables
-    return 0;
 
+    return 0;
 }
 ;
 
@@ -352,8 +351,8 @@ Statement : LBRACE {
 	if (type == "BOOL") {
         m.bpatch($4->true_list,cf.genLabel());
         cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
-        cf.emit("li $" + to_string(reg) + ", 1");
-        cf.emit("sw $"+ to_string(reg) +", 0($sp)");
+        cf.emit("li $" + convert_to_string(reg) + ", 1");
+        cf.emit("sw $"+ convert_to_string(reg) +", 0($sp)");
         setRegister(reg,true);
         $$->next_list = cf.makelist(cf.emit("j  "));
         m.bpatch($4->false_list,cf.genLabel());
@@ -392,12 +391,12 @@ Statement : LBRACE {
     if (expType == "BOOL")
     {
         m.bpatch($3->true_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 1");
-        cf.emit("sw $"+ to_string(reg) +"," + to_string((-4) * e->offset) + "($fp)");
+        cf.emit("li $" + convert_to_string(reg) + ", 1");
+        cf.emit("sw $"+ convert_to_string(reg) +"," + convert_to_string((-4) * e->offset) + "($fp)");
         setRegister(reg,true);
         $$->next_list = cf.makelist(cf.emit("j  "));
         m.bpatch($3->false_list,cf.genLabel());
-        cf.emit("sw $0," + to_string((-4) * e->offset) + "($fp)");
+        cf.emit("sw $0," + convert_to_string((-4) * e->offset) + "($fp)");
     }
     else
     {
@@ -453,7 +452,7 @@ Statement : LBRACE {
     else
     {
         // Clear local variables
-        cf.emit("add $v0, $" + to_string($2->reg) + ", 0");
+        cf.emit("add $v0, $" + convert_to_string($2->reg) + ", 0");
         //TODO: empty_func_stack();
         m.jump(RA);
     }
@@ -595,7 +594,7 @@ Call : ID LPAREN ExpList RPAREN
                 m.pushToStack(i);
                 backupRegisters.push_back(i);
                 setRegister(i, true);
-                m.debugPrint("\t pushed saved register $" + to_string(i));
+                m.debugPrint("\t pushed saved register $" + convert_to_string(i));
             }
     }
     //clearTempRegisters(); // todo add assert - all temp registers are free to use
@@ -614,7 +613,7 @@ Call : ID LPAREN ExpList RPAREN
     {
         m.pushToStack(argumentsRegs[i]);
         setRegister(argumentsRegs[i],true);
-        m.debugPrint("\t pushed arg from $" + to_string(argumentsRegs[i]));
+        m.debugPrint("\t pushed arg from $" + convert_to_string(argumentsRegs[i]));
     }
 
     //cf.emit("subu $fp, $sp, 4"); // start new frame for current function (named ID)
@@ -655,7 +654,7 @@ Call : ID LPAREN ExpList RPAREN
     {
         m.popFromStack(backupRegisters[i]);
         setRegister(backupRegisters[i], false);
-        m.debugPrint("\t popped saved register $" + to_string(backupRegisters[i]));
+        m.debugPrint("\t popped saved register $" + convert_to_string(backupRegisters[i]));
     }
 
     //cout << "stack size after is: " << m.stack.size() << endl;
@@ -671,8 +670,8 @@ Call : ID LPAREN ExpList RPAREN
         // store function result in reg (result was stored on $v0 by calle?)
         int reg = getAvailableRegister();
         setRegister(reg,false);
-        m.debugPrint(to_string(reg) + " used for result value of " + name);
-        cf.emit("add $" + to_string(reg) + ", $v0, 0");
+        m.debugPrint(convert_to_string(reg) + " used for result value of " + name);
+        cf.emit("add $" + convert_to_string(reg) + ", $v0, 0");
         $$->reg = reg;
     }
 
@@ -701,43 +700,76 @@ Call : ID LPAREN ExpList RPAREN
     string type = getExpFuncReturnType($1);
     $$ = new Type(type);
 
-    // HW5:
+    //HW5
+
+    m.debugPrint("Caller's set activation record for " + name);
+    // ==================== [Start] Activation record - Caller's frame ====================
+
     vector<int> backupRegisters;
 
+    m.debugPrint("\t 1. Push saved registers");
+    // 1. Push saved registers
     for (int i=8; i<=25; ++i)
     {
         if (isRegisterAvailable(i) == false)
-        {
-            cf.emit("subu $sp, $sp, 4");
-            cf.emit("sw $" + to_string(i) + ", ($sp)");
-            backupRegisters.push_back(i);
-        }
+            {
+                m.pushToStack(i);
+                backupRegisters.push_back(i);
+                setRegister(i, true);
+                m.debugPrint("\t pushed saved register $" + convert_to_string(i));
+            }
+    }
+    //clearTempRegisters(); // todo add assert - all temp registers are free to use
+
+    m.debugPrint("\t 2. Push caller's fp");
+    // 2. Push caller's fp
+    m.pushToStack(FP);
+
+    m.debugPrint("\t 3. Push caller's ra");
+    // 3. Push caller's ra
+    m.pushToStack(RA);
+
+    m.debugPrint("\t 4. Push calle's arguments");
+
+    //cf.emit("subu $fp, $sp, 4"); // start new frame for current function (named ID)
+
+    // ==================== [END] Activation record - Caller's frame ====================
+
+    m.debugPrint("\t --- goto to  " + name + "---");
+    if (name == "main") {
+        cf.emit("jal main");
+    }
+    else {
+        cf.emit("jal _" + name);
+    }
+    m.debugPrint("\t --- returned from  " + name + "---");
+
+    // calle done his job ($ra saved on jal) we are back to caller's frame
+
+    // ==================== [Start] Activation record - Caller's frame ====================
+
+    m.debugPrint("\t 4. Pop callee's arguments");
+
+    m.debugPrint("\t 3. Pop caller's ra");
+    // 3. Pop caller's ra
+    m.popFromStack(RA);
+
+    m.debugPrint("\t 2. Pop caller's fp");
+    // 2. Pop caller's fp
+    m.popFromStack(FP);
+
+    m.debugPrint("\t 1. Pop saved registers");
+    // 1. Pop saved registers (Restore saved registers)
+    for (int i=0; i < backupRegisters.size(); ++i)
+    {
+        m.popFromStack(backupRegisters[i]);
+        setRegister(backupRegisters[i], false);
+        m.debugPrint("\t popped saved register $" + convert_to_string(backupRegisters[i]));
     }
 
-    cf.emit("subu $sp, $sp, 4");
-    cf.emit("sw $fp, ($sp)");
-    cf.emit("subu $sp, $sp, 4");
-    cf.emit("sw $ra, ($sp)");
+    //cout << "stack size after is: " << m.stack.size() << endl;
 
-    clearTempRegisters();
-
-    //cf.emit("subu $fp, $sp, 4");
-    if (name != "main") name = name + "_";
-    cf.emit("jal " + name);
-    cf.emit("lw $ra, ($sp)");
-    cf.emit("addu $sp, $sp, 4");
-    cf.emit("lw $fp, ($sp)");
-    cf.emit("addu $sp, $sp, 4");
-
-    for (int i=backupRegisters.size()-1; i>=0; --i) //Restore registers
-    {
-        setRegister(backupRegisters[i],false);
-        cf.emit("lw $" + to_string(backupRegisters[i]) + ", ($sp)");
-        cf.emit("addu $sp, $sp, 4");
-    }
-
-    if (type == "BOOL")
-    {
+    if (type == "BOOL"){
         int quad = cf.emit("beq $v0, 0, ");
         $$->true_list = cf.makelist(cf.emit("j "));
         m.bpatch(cf.makelist(quad),cf.genLabel());
@@ -745,8 +777,11 @@ Call : ID LPAREN ExpList RPAREN
     }
     else
     {
+        // store function result in reg (result was stored on $v0 by calle?)
         int reg = getAvailableRegister();
-        cf.emit("add $" + to_string(reg) + ", $v0, 0");
+        setRegister(reg,false);
+        m.debugPrint(convert_to_string(reg) + " used for result value of " + name);
+        cf.emit("add $" + convert_to_string(reg) + ", $v0, 0");
         $$->reg = reg;
     }
 
@@ -762,17 +797,17 @@ ExpList : Exp
         reg = getAvailableRegister();
         setRegister(reg,false);
         m.bpatch($1->true_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 1");
+        cf.emit("li $" + convert_to_string(reg) + ", 1");
         int quad = cf.emit("j  ");
         m.bpatch($1->false_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 0");
+        cf.emit("li $" + convert_to_string(reg) + ", 0");
         m.bpatch(cf.makelist(quad),cf.genLabel());
     }
     else if (expType == "STRING")
     {
         reg = getAvailableRegister();
         setRegister(reg,false);
-        cf.emit("la $" + to_string(reg) + ", " + $1->label);
+        cf.emit("la $" + convert_to_string(reg) + ", " + $1->label);
     }
     else reg = $1->reg;
 
@@ -788,17 +823,17 @@ ExpList : Exp
         reg = getAvailableRegister();
         setRegister(reg,false);
         m.bpatch($1->true_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 1");
+        cf.emit("li $" + convert_to_string(reg) + ", 1");
         int quad = cf.emit("j  ");
         m.bpatch($1->false_list,cf.genLabel());
-        cf.emit("li $" + to_string(reg) + ", 0");
+        cf.emit("li $" + convert_to_string(reg) + ", 0");
         m.bpatch(cf.makelist(quad),cf.genLabel());
     }
     else if (expType == "STRING")
     {
         reg = getAvailableRegister();
         setRegister(reg,false);
-        cf.emit("la $" + to_string(reg) + ", " + $1->label);
+        cf.emit("la $" + convert_to_string(reg) + ", " + $1->label);
     }
     else reg = $1->reg;
 
@@ -843,7 +878,7 @@ Exp : LPAREN Exp RPAREN
 
 	if (op == "*") cmd = "mul ";
 	if (op == "/") {
-	    cf.emit("beqz $" + to_string($3->reg) + ", div_zero");
+	    cf.emit("beqz $" + convert_to_string($3->reg) + ", div_zero");
 	    cmd = "div ";
 	}
 	if (op == "+") cmd = "addu ";
@@ -851,13 +886,13 @@ Exp : LPAREN Exp RPAREN
 
 
     // e.g.: addu $1,$1,$2 , puts result of addu into $1
-    cf.emit(cmd + "$" + to_string($1->reg) + ", $" + to_string($1->reg) + ", $" + to_string($3->reg));
+    cf.emit(cmd + "$" + convert_to_string($1->reg) + ", $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg));
 
     //set register of 2nd operand as available
     setRegister($3->reg,true);
 
     if (type == "BYTE")
-        cf.emit("and $" + to_string($1->reg) + ", $" + to_string($1->reg) + ", 255");
+        cf.emit("and $" + convert_to_string($1->reg) + ", $" + convert_to_string($1->reg) + ", 255");
 
     $$->reg = $1->reg;
 }
@@ -879,12 +914,12 @@ Exp : LPAREN Exp RPAREN
     int reg = getAvailableRegister();
     setRegister(reg,false);
     SymbolTableEntry* e=getIdEntry(name,false);
-    m.debugPrint(to_string(reg) + " used for ID: " + name);
-    cf.emit("lw $" + to_string(reg) + ", " + to_string((-4)*(e->offset)) + "($fp)");
+    m.debugPrint(convert_to_string(reg) + " used for ID: " + name);
+    cf.emit("lw $" + convert_to_string(reg) + ", " + convert_to_string((-4)*(e->offset)) + "($fp)");
 
     if (type == "BOOL")
     {
-        $$->true_list = cf.makelist(cf.emit("beq $" + to_string(reg) + ", 1,  "));
+        $$->true_list = cf.makelist(cf.emit("beq $" + convert_to_string(reg) + ", 1,  "));
         $$->false_list = cf.makelist(cf.emit("j  "));
         setRegister(reg,true);
     }
@@ -904,9 +939,9 @@ Exp : LPAREN Exp RPAREN
     int reg = getAvailableRegister();
     $$->reg = reg;
     setRegister(reg,false);
-    m.debugPrint(" " + to_string(reg) + " used for NUM");
+    m.debugPrint(" " + convert_to_string(reg) + " used for NUM");
     // Save NUM's value to register
-    cf.emit("li $" + to_string(reg) + ", " + num->name);
+    cf.emit("li $" + convert_to_string(reg) + ", " + num->name);
 }
 | NUM B
 {
@@ -925,7 +960,7 @@ Exp : LPAREN Exp RPAREN
     int reg = getAvailableRegister();
     $$->reg = reg;
     setRegister(reg,false);
-    cf.emit("li $" + to_string(reg) + ", " + numId->name);
+    cf.emit("li $" + convert_to_string(reg) + ", " + numId->name);
 }
 | STRING
 {
@@ -934,7 +969,7 @@ Exp : LPAREN Exp RPAREN
 	// HW5:
 	NameTypeInfo* s = dynamic_cast<NameTypeInfo*>($1);
 	string string_content = s->name;
-	string label = "string_" + to_string(stringCnt);
+	string label = "string_" + convert_to_string(stringCnt);
 	stringCnt++;
 	cf.emitData(label + ": .asciiz " + string_content);
 	$$->label = label;
@@ -996,13 +1031,13 @@ Exp : LPAREN Exp RPAREN
 	string op = relop->name;
 
 	if (op == "<")
-	    $$->true_list = cf.makelist(cf.emit("blt $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	    $$->true_list = cf.makelist(cf.emit("blt $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
 	if (op == "<=")
-	    $$->true_list = cf.makelist(cf.emit("ble $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	    $$->true_list = cf.makelist(cf.emit("ble $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
 	if (op == ">")
-	    $$->true_list = cf.makelist(cf.emit("bgt $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	    $$->true_list = cf.makelist(cf.emit("bgt $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
 	if (op == ">=")
-	    $$->true_list = cf.makelist(cf.emit("bge $" + to_string($1->reg) + ", $" + to_string($3->reg) + ",  "));
+	    $$->true_list = cf.makelist(cf.emit("bge $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
 
 	$$->false_list = cf.makelist(cf.emit("j "));
 

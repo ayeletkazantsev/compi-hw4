@@ -7,31 +7,40 @@
 
 #include "bp.hpp"
 
+string convert_to_string(int val)
+{
+    stringstream ss;
+    ss << val;
+    return ss.str();
+}
+
 
 enum Register {SP = 29, FP = 30, RA = 31};
 
 using namespace std;
 struct Mips {
-    CodeBuffer &cf = CodeBuffer::instance();
+    CodeBuffer &cf;
 
-    bool commentsIsOn = true;
+    bool commentsIsOn;
 
     //http://www.egr.unlv.edu/~ed/MIPStextSMv11.pdf
 
 
 
-    stack <string> stack;
+    stack <string> s;
     string registers_pool[32]; // we use only 8 to 25
     bool free_registers[32];
 
+    Mips() : cf(CodeBuffer::instance()), commentsIsOn(false) {}
+
     void pushToStack(int reg) {
         if (commentsIsOn) {
-            cf.emit("# push $" + to_string(reg));
+            cf.emit("# push $" + convert_to_string(reg));
         }
 
         cf.emit("subu $sp, $sp, 4");
-        cf.emit("sw $" + to_string(reg) + ", ($sp)");
-        stack.push(registers_pool[reg]);
+        cf.emit("sw $" + convert_to_string(reg) + ", ($sp)");
+        s.push(registers_pool[reg]);
         free_registers[reg] = true;
 
         if (commentsIsOn) {
@@ -41,16 +50,16 @@ struct Mips {
 
     void popFromStack(int reg) {
         if (commentsIsOn) {
-            cf.emit("# pop to $" + to_string(reg));
+            cf.emit("# pop to $" + convert_to_string(reg));
         }
 
-        cf.emit("lw $" + to_string(reg) + ", ($sp)");
+        cf.emit("lw $" + convert_to_string(reg) + ", ($sp)");
         cf.emit("addu $sp, $sp, 4");
 
         free_registers[reg] = false;
-        registers_pool[reg] = stack.top();
+        registers_pool[reg] = s.top();
 
-        stack.pop();
+        s.pop();
         if (commentsIsOn) {
             cf.emit("");
         }
@@ -62,7 +71,7 @@ struct Mips {
         }
 
         cf.emit("addu $sp, $sp, 4");
-        stack.pop();
+        s.pop();
 
         if (commentsIsOn) {
             cf.emit("");
@@ -71,10 +80,10 @@ struct Mips {
 
     void setOnFrame(int reg, int offset) {
         if (commentsIsOn) {
-            cf.emit("# set $" + to_string(reg) + " on " + to_string(offset) + "th place of frame");
+            cf.emit("# set $" + convert_to_string(reg) + " on " + convert_to_string(offset) + "th place of frame");
         }
 
-        cf.emit("sw $" + to_string(reg) + "," + to_string((-4) * offset) + "($fp)");
+        cf.emit("sw $" + convert_to_string(reg) + "," + convert_to_string((-4) * offset) + "($fp)");
         free_registers[reg] = true;
 
         if (commentsIsOn) {
@@ -84,10 +93,10 @@ struct Mips {
 
     void assign(int rDest, int rSrc) {
         if (commentsIsOn) {
-            cf.emit("# $" + to_string(rDest) + "=$" + to_string(rSrc));
+            cf.emit("# $" + convert_to_string(rDest) + "=$" + convert_to_string(rSrc));
         }
 
-        cf.emit("move $" + to_string(rDest) + ", $" + to_string(rSrc));
+        cf.emit("move $" + convert_to_string(rDest) + ", $" + convert_to_string(rSrc));
 
         if (commentsIsOn) {
             cf.emit("");
@@ -96,10 +105,10 @@ struct Mips {
 
     void jump(int reg) {
         if (commentsIsOn) {
-            cf.emit("# goto $" + to_string(reg));
+            cf.emit("# goto $" + convert_to_string(reg));
         }
 
-        cf.emit("jr $" + to_string(reg));
+        cf.emit("jr $" + convert_to_string(reg));
 
         if (commentsIsOn) {
             cf.emit("");
@@ -121,7 +130,8 @@ struct Mips {
     void setRegister() {}
 
     void debugPrint(const string &str) {
-        cout << "# DEBUG: " << str << endl;
+        if (commentsIsOn)
+            cout << "# DEBUG: " << str << endl;
     }
 
 };
