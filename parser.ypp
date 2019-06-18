@@ -749,6 +749,7 @@ Call : ID LPAREN ExpList RPAREN
         cf.emit("add $" + to_string(reg) + ", $v0, 0");
         $$->reg = reg;
     }
+
 }
 ;
 
