@@ -39,6 +39,7 @@ struct NameTypeInfo : public Type{ // ID, "X"
     string name;
 
     NameTypeInfo(string type, string name) : type(type), name(name) {}
+    NameTypeInfo(string type, int reg) : type(type) {reg=reg;}
 };
 
 struct MultiNameTypeInfo : public Type { // list of token names

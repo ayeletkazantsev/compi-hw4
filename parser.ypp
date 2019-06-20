@@ -96,8 +96,8 @@ M : %empty
 
     // printi
     cf.emit("_printi:");
-    cf.emit("lw $a0, 0($sp)");
-    cf.emit("li $v0, 1");
+    cf.emit("lw $a0, 0($sp)"); //load argument value to a0 from 0(sp)
+    cf.emit("li $v0, 1"); //load the service number for syscall
     cf.emit("syscall");
     cf.emit("jr $ra");
 
@@ -162,7 +162,6 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     // HW5:
     if (name == "main") {
         cf.emit("main:");
-
     }
     else {
         cf.emit("_" + name + ":");
@@ -625,16 +624,16 @@ Call : ID LPAREN ExpList RPAREN
         cf.emit("jal main");
     }
     else {
-        cf.emit("jal _" + name);
+        cf.emit("jal _" + name); //jump to function called
     }
     m.debugPrint("\t --- returned from  " + name + "---");
 
-    // calle done his job ($ra saved on jal) we are back to caller's frame
+    // callee done his job ($ra saved on jal) we are back to caller's frame
 
-    // ==================== [Start] Activation record - Caller's frame ====================
+    // ==================== [Start] Activation record - Callee's frame ====================
 
-    m.debugPrint("\t 4. Pop calle's arguments");
-    // 4. Pop calle's arguments
+    m.debugPrint("\t 4. Pop callee's arguments");
+    // 4. Pop callee's arguments
     for (int i = exp_args_types.size()-1; i>=0; --i)
     {
         m.popFromStack();
@@ -674,7 +673,6 @@ Call : ID LPAREN ExpList RPAREN
         cf.emit("add $" + convert_to_string(reg) + ", $v0, 0");
         $$->reg = reg;
     }
-
 }
 | ID LPAREN RPAREN
 {
@@ -700,91 +698,86 @@ Call : ID LPAREN ExpList RPAREN
     string type = getExpFuncReturnType($1);
     $$ = new Type(type);
 
-    //HW5
+   //HW5
 
-    m.debugPrint("Caller's set activation record for " + name);
-    // ==================== [Start] Activation record - Caller's frame ====================
+   m.debugPrint("Caller's set activation record for " + name);
+   // ==================== [Start] Activation record - Caller's frame ====================
 
-    vector<int> backupRegisters;
+   vector<int> backupRegisters;
 
-    m.debugPrint("\t 1. Push saved registers");
-    // 1. Push saved registers
-    for (int i=8; i<=25; ++i)
-    {
-        if (isRegisterAvailable(i) == false)
-            {
-                m.pushToStack(i);
-                backupRegisters.push_back(i);
-                setRegister(i, true);
-                m.debugPrint("\t pushed saved register $" + convert_to_string(i));
-            }
-    }
-    //clearTempRegisters(); // todo add assert - all temp registers are free to use
+   m.debugPrint("\t 1. Push saved registers");
+   // 1. Push saved registers
+   for (int i=8; i<=25; ++i)
+   {
+       if (isRegisterAvailable(i) == false)
+           {
+               m.pushToStack(i);
+               backupRegisters.push_back(i);
+               setRegister(i, true);
+               m.debugPrint("\t pushed saved register $" + convert_to_string(i));
+           }
+   }
+   //clearTempRegisters(); // todo add assert - all temp registers are free to use
 
-    m.debugPrint("\t 2. Push caller's fp");
-    // 2. Push caller's fp
-    m.pushToStack(FP);
+   m.debugPrint("\t 2. Push caller's fp");
+   // 2. Push caller's fp
+   m.pushToStack(FP);
 
-    m.debugPrint("\t 3. Push caller's ra");
-    // 3. Push caller's ra
-    m.pushToStack(RA);
+   m.debugPrint("\t 3. Push caller's ra");
+   // 3. Push caller's ra
+   m.pushToStack(RA);
 
-    m.debugPrint("\t 4. Push calle's arguments");
+   //cf.emit("subu $fp, $sp, 4"); // start new frame for current function (named ID)
 
-    //cf.emit("subu $fp, $sp, 4"); // start new frame for current function (named ID)
+   // ==================== [END] Activation record - Caller's frame ====================
 
-    // ==================== [END] Activation record - Caller's frame ====================
+   m.debugPrint("\t --- goto to  " + name + "---");
+   if (name == "main") {
+       cf.emit("jal main");
+   }
+   else {
+       cf.emit("jal _" + name);
+   }
+   m.debugPrint("\t --- returned from  " + name + "---");
 
-    m.debugPrint("\t --- goto to  " + name + "---");
-    if (name == "main") {
-        cf.emit("jal main");
-    }
-    else {
-        cf.emit("jal _" + name);
-    }
-    m.debugPrint("\t --- returned from  " + name + "---");
+   // calle done his job ($ra saved on jal) we are back to caller's frame
 
-    // calle done his job ($ra saved on jal) we are back to caller's frame
+   // ==================== [Start] Activation record - Caller's frame ====================
 
-    // ==================== [Start] Activation record - Caller's frame ====================
+   m.debugPrint("\t 3. Pop caller's ra");
+   // 3. Pop caller's ra
+   m.popFromStack(RA);
 
-    m.debugPrint("\t 4. Pop callee's arguments");
+   m.debugPrint("\t 2. Pop caller's fp");
+   // 2. Pop caller's fp
+   m.popFromStack(FP);
 
-    m.debugPrint("\t 3. Pop caller's ra");
-    // 3. Pop caller's ra
-    m.popFromStack(RA);
+   m.debugPrint("\t 1. Pop saved registers");
+   // 1. Pop saved registers (Restore saved registers)
+   for (int i=0; i < backupRegisters.size(); ++i)
+   {
+       m.popFromStack(backupRegisters[i]);
+       setRegister(backupRegisters[i], false);
+       m.debugPrint("\t popped saved register $" + convert_to_string(backupRegisters[i]));
+   }
 
-    m.debugPrint("\t 2. Pop caller's fp");
-    // 2. Pop caller's fp
-    m.popFromStack(FP);
+   //cout << "stack size after is: " << m.stack.size() << endl;
 
-    m.debugPrint("\t 1. Pop saved registers");
-    // 1. Pop saved registers (Restore saved registers)
-    for (int i=0; i < backupRegisters.size(); ++i)
-    {
-        m.popFromStack(backupRegisters[i]);
-        setRegister(backupRegisters[i], false);
-        m.debugPrint("\t popped saved register $" + convert_to_string(backupRegisters[i]));
-    }
-
-    //cout << "stack size after is: " << m.stack.size() << endl;
-
-    if (type == "BOOL"){
-        int quad = cf.emit("beq $v0, 0, ");
-        $$->true_list = cf.makelist(cf.emit("j "));
-        m.bpatch(cf.makelist(quad),cf.genLabel());
-        $$->false_list=cf.makelist(cf.emit("j "));
-    }
-    else
-    {
-        // store function result in reg (result was stored on $v0 by calle?)
-        int reg = getAvailableRegister();
-        setRegister(reg,false);
-        m.debugPrint(convert_to_string(reg) + " used for result value of " + name);
-        cf.emit("add $" + convert_to_string(reg) + ", $v0, 0");
-        $$->reg = reg;
-    }
-
+   if (type == "BOOL"){
+       int quad = cf.emit("beq $v0, 0, ");
+       $$->true_list = cf.makelist(cf.emit("j "));
+       m.bpatch(cf.makelist(quad),cf.genLabel());
+       $$->false_list=cf.makelist(cf.emit("j "));
+   }
+   else
+   {
+       // store function result in reg (result was stored on $v0 by calle?)
+       int reg = getAvailableRegister();
+       setRegister(reg,false);
+       m.debugPrint(convert_to_string(reg) + " used for result value of " + name);
+       cf.emit("add $" + convert_to_string(reg) + ", $v0, 0");
+       $$->reg = reg;
+   }
 }
 ;
 
@@ -813,11 +806,26 @@ ExpList : Exp
 
     $$ = new NameMultiTypeInfo(getExpType($1), reg);
 }
-| Exp
+| NewExp COMMA ExpList
+{
+	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>($3);
+	vector<string> types = expList->types;
+	vector<int> regs = expList->registers; //HW5
+	string type = getExpType($1);
+	//cf.emit("DEBUG: expType is: " + type);
+    int reg = getAvailableRegister(); //HW5
+    setRegister(reg, false); //HW5
+	types.push_back(type);
+	regs.push_back(reg); //HW5
+	$$ = new NameMultiTypeInfo(types,regs); //HW5
+}
+;
+
+NewExp : Exp
 {
     // HW5:
     string expType = getExpType($1);
-    cf.emit("DEBUG: expType is: " + expType);
+    //cf.emit("DEBUG: expType is: " + expType);
     int reg;
     if (expType == "BOOL"){
         reg = getAvailableRegister();
@@ -837,22 +845,7 @@ ExpList : Exp
     }
     else reg = $1->reg;
 
-    $$ = new NameMultiTypeInfo(getExpType($1), reg);
-}
-COMMA ExpList
-{
-	NameMultiTypeInfo* expList = dynamic_cast<NameMultiTypeInfo*>($3);
-	vector<string> types = expList->types;
-	vector<int> regs = expList->registers; //HW5
-	string type = getExpType($1);
-	cf.emit("DEBUG: expType is: " + type);
-    int reg = getAvailableRegister(); //HW5
-    setRegister(reg, false); //HW5
-	types.push_back(type);
-	regs.push_back(reg); //HW5
-
-	$$ = new NameMultiTypeInfo(types,regs); //HW5
-
+    $$ = new NameTypeInfo(getExpType($1), reg);
 }
 ;
 
@@ -925,6 +918,8 @@ Exp : LPAREN Exp RPAREN
     }
     else
         $$->reg = reg;
+
+    cout << "reg: " << reg << endl;
 }
 | Call
 {
@@ -1059,7 +1054,6 @@ int main() {
 	yyparse();
 
 	//HW5
+	cf.printDataBuffer();
 	cf.printCodeBuffer();
-    cf.printDataBuffer();
-
 }
