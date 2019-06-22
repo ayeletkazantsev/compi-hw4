@@ -411,12 +411,10 @@ Statement : LBRACE {
         m.bpatch($2->false_list,cf.genLabel());
         cf.emit("li $v0, 0");
         m.bpatch(cf.makelist(quad), cf.genLabel());
-        cf.emit("jr $ra");
     }
     else
     {
         cf.emit("add $v0, $" + convert_to_string($2->reg) + ", 0");
-        m.jump(RA);
     }
 
     $$ = $2;
