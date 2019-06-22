@@ -31,6 +31,7 @@ int stringCnt = 0;
 Mips m = Mips();
 CodeBuffer &cf = m.cf;
 
+int string_count = 0;
 %}
 
 
@@ -418,21 +419,31 @@ Statement : LBRACE {
 
     $$ = $2;
 }
-| WHILE LPAREN Exp RPAREN {
+| WHILE LPAREN NewLabel Exp RPAREN {
 	whileLoopCnt++;
-	if (getExpType($3) != "BOOL")
+	if (getExpType($4) != "BOOL")
 	{
 		errorMismatch(yylineno);
 		exit(0);
 	}
 	openScope();
-} Statement
+
+	//HW5
+} NewLabel Statement NewLabel
 {
 	whileLoopCnt--;
 	endScope();
 	closeScope();
 
-	//todo: hw5
+	//HW5
+    $$ = new Type();
+    m.bpatch($8->next_list,$9->label);
+    m.bpatch($8->continue_list,$9->label);
+    m.bpatch($4->true_list,$7->label);
+
+    $$->next_list = cf.merge($4->false_list,$8->break_list);
+
+    cf.emit("j " + $3->label);
 }
 | BREAK SC 
 {
@@ -442,19 +453,21 @@ Statement : LBRACE {
 		exit(0);
 	}
 
-	//todo: hw5
+    whileLoopCnt = 0;
+
+	//HW5
     $$ = new Type();
     $$->break_list = cf.makelist(cf.emit("j "));
 }
 | CONTINUE SC 
 {
-	//todo: hw5 while table?
 	if (whileLoopCnt == 0)
 	{
 		errorUnexpectedContinue(yylineno);
 		exit(0);
 	}
 
+    //HW5
 	$$ = new Type();
 	$$->continue_list = cf.makelist(cf.emit("j "));
 }
