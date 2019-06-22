@@ -138,8 +138,14 @@ struct Mips {
     void functionCall(Type* leftSideOfRule, string name, NameMultiTypeInfo* expList, string returnType) {
         debugPrint("Caller's set activation record for " + name);
         // ==================== [Start] Activation record - Caller's frame ====================
-        vector<string> exp_args_types = expList->types;
-        vector<int> argumentsRegs = expList->registers;
+        vector<string> exp_args_types;
+        vector<int> argumentsRegs;
+
+        if (expList) {
+            exp_args_types = expList->types;
+            argumentsRegs = expList->registers;
+        }
+
         vector<int> backupRegisters;
 
         debugPrint("\t 1. Push saved registers");
