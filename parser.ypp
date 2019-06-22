@@ -408,18 +408,15 @@ Statement : LBRACE {
         m.bpatch($2->false_list,cf.genLabel());
         cf.emit("li $v0, 0");
         m.bpatch(cf.makelist(quad), cf.genLabel());
-        //empty_func_stack();
         cf.emit("jr $ra");
     }
     else
     {
-        // Clear local variables
         cf.emit("add $v0, $" + convert_to_string($2->reg) + ", 0");
-        //TODO: empty_func_stack();
         m.jump(RA);
     }
 
-    clearTempRegisters();
+    $$ = $2;
 }
 | WHILE LPAREN Exp RPAREN {
 	whileLoopCnt++;
@@ -793,7 +790,7 @@ Exp : LPAREN Exp RPAREN
 }
 | Call
 {
-	$$ = new Type(getExpType($1));
+	$$ = $1;
 }
 | NUM
 {
