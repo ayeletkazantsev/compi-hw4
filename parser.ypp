@@ -344,26 +344,8 @@ Statement : LBRACE {
 	pushIdentifierToStack($1->type,id->name);
 
 	//HW5:
-	string type = $1->type;
-	int reg = getAvailableRegister();
-    setRegister(reg,false);
-	if (type == "BOOL") {
-        m.bpatch($4->true_list,cf.genLabel());
-        cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
-        cf.emit("li $" + convert_to_string(reg) + ", 1");
-        cf.emit("sw $"+ convert_to_string(reg) +", 0($sp)");
-        setRegister(reg,true);
-        $$->next_list = cf.makelist(cf.emit("j  "));
-        m.bpatch($4->false_list,cf.genLabel());
-        cf.emit("subu $sp, $sp, 4"); // Allocate room on stack
-        cf.emit("sw $0, 0($sp)");
-	}
-	else
-	{
-       // Push expression ($4) to stack; Allocate local variable on stack
-       m.pushToStack($4->reg);
-       setRegister($4->reg,true); // Free exp register
-	}
+	m.debugPrint("Type ID ASSIGN Exp SC");
+    m.assignExpressionToId(name, $4, $$, true);
 }
 | ID ASSIGN Exp SC
 {
@@ -383,25 +365,7 @@ Statement : LBRACE {
     }
 
     // HW5:
-    string expType = getExpType($3);
-    SymbolTableEntry* e = getIdEntry(name,false);
-    int reg = getAvailableRegister();
-    setRegister(reg,false);
-    if (expType == "BOOL")
-    {
-        m.bpatch($3->true_list,cf.genLabel());
-        cf.emit("li $" + convert_to_string(reg) + ", 1");
-        cf.emit("sw $"+ convert_to_string(reg) +"," + convert_to_string((-4) * e->offset) + "($fp)");
-        setRegister(reg,true);
-        $$->next_list = cf.makelist(cf.emit("j  "));
-        m.bpatch($3->false_list,cf.genLabel());
-        cf.emit("sw $0," + convert_to_string((-4) * e->offset) + "($fp)");
-    }
-    else
-    {
-        m.setOnFrame($3->reg, e->offset);
-        setRegister($3->reg, true);
-    }
+    m.assignExpressionToId(name, $3, $$, false);
 }
 | Call SC
 {
@@ -419,8 +383,7 @@ Statement : LBRACE {
 	}
 
 	$$ = new Type();
-	//todo: empty_func_stack()?
-	m.jump(RA);
+//	m.jump(RA);
 }
 | RETURN Exp SC 
 {

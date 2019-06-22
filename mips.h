@@ -233,6 +233,33 @@ struct Mips {
         }
     }
 
+    void assignExpressionToId(string name, YYSTYPE exp, Type* leftSideOfRule, bool firstTime) {
+        string expType = Parser::getExpType(exp);
+        SymbolTableEntry* e = Parser::getIdEntry(name,false);
+        int reg = Parser::getAvailableRegister();
+        Parser::setRegister(reg,false);
+        if (expType == "BOOL")
+        {
+            bpatch(exp->true_list,cf.genLabel());
+            cf.emit("li $" + convert_to_string(reg) + ", 1");
+            cf.emit("sw $"+ convert_to_string(reg) +"," + convert_to_string((-4) * e->offset) + "($fp)");
+            Parser::setRegister(reg,true);
+            leftSideOfRule->next_list = cf.makelist(cf.emit("j  "));
+            bpatch(leftSideOfRule->false_list,cf.genLabel());
+            cf.emit("sw $0," + convert_to_string((-4) * e->offset) + "($fp)");
+        }
+        else
+        {
+            if (firstTime) {
+                pushToStack(exp->reg);
+            }
+            else {
+                setOnFrame(exp->reg, e->offset);
+            }
+            Parser::setRegister(exp->reg, true);
+        }
+    }
+
 };
 
 #endif //HW3_MIPS_H
