@@ -213,7 +213,7 @@ struct Mips {
 
         debugPrint("\t 1. Pop saved registers");
         // 1. Pop saved registers (Restore saved registers)
-        for (int i=0; i < backupRegisters.size(); ++i)
+        for (int i = backupRegisters.size() - 1; i >= 0; --i)
         {
             popFromStack(backupRegisters[i]);
             Parser::setRegister(backupRegisters[i], false);

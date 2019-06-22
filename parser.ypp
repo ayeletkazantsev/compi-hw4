@@ -190,7 +190,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     }
 
     //HW5
-    clearTempRegisters();
+    //clearTempRegisters();
 
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
@@ -386,7 +386,9 @@ Statement : LBRACE {
 	}
 
 	$$ = new Type();
-//	m.jump(RA);
+
+	cf.emit("add $sp, $fp, 4"); // move the sp back
+	m.jump(RA);
 }
 | RETURN Exp SC 
 {
@@ -417,6 +419,8 @@ Statement : LBRACE {
         cf.emit("add $v0, $" + convert_to_string($2->reg) + ", 0");
     }
 
+    cf.emit("add $sp, $fp, 4"); // move the sp back
+    m.jump(RA);
     $$ = $2;
 }
 | WHILE LPAREN NewLabel Exp RPAREN {
