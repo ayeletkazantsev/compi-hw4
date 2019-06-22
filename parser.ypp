@@ -900,6 +900,11 @@ Exp : LPAREN Exp RPAREN
 	    $$->true_list = cf.makelist(cf.emit("bgt $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
 	if (op == ">=")
 	    $$->true_list = cf.makelist(cf.emit("bge $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
+    if (op == "==")
+        $$ -> true_list = cf.makelist(cf.emit("beq $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
+    if (op == "!=")
+        $$ -> true_list = cf.makelist(cf.emit("bne $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
+
 
 	$$->false_list = cf.makelist(cf.emit("j "));
 
