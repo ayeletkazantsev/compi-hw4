@@ -177,6 +177,8 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
 	string name = id->name;
     currentReturnType = "";
 
+    // HW5:
+    m.bpatch($10->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -188,8 +190,21 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     }
 
     //HW5
-	m.bpatch($7->true_list,$8->label);
-    m.bpatch($7->false_list,$12->label);
+    if ($7) {
+    	m.bpatch($7->true_list,$8->label);
+        m.bpatch($7->false_list, $12->label);
+
+        //todo: add print
+                //string label = "precondition_hadnler_for_" + name;
+                //cf.emitData(label + "_str: .asciiz \"Precondition hasn't been satisfied for function " + name + "\\n\"");
+                //cf.emit(label + ":");
+                //cf.emit("la $a0, " + label + "_str");
+                //cf.emit("li $v0, 4"); // Syscall to print
+                //cf.emit("syscall");
+                //cf.emit("li $v0, 10"); // Syscall to terminate
+                //cf.emit("syscall");
+    }
+
 
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
