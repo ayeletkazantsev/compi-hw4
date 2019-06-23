@@ -172,13 +172,11 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     m.debugPrint("Calle's (" + name + ") frame start (FP=SP)");
     cf.emit("subu $fp, $sp, 4"); // set the fp
 
-} PreConditions LBRACE Statements RBRACE {
+} PreConditions NewLabel LBRACE Statements RBRACE NewLabel {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
 	string name = id->name;
     currentReturnType = "";
 
-    // HW5:
-    m.bpatch($9->next_list,cf.genLabel()); //todo: check if this is correct
 
     endScope(); // print "end scope" message
     printPreconditions(name, precondCnt); // print num of precondition
@@ -190,7 +188,8 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     }
 
     //HW5
-    //clearTempRegisters();
+	m.bpatch($7->true_list,$8->label);
+    m.bpatch($7->false_list,$12->label);
 
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
@@ -255,6 +254,9 @@ PreConditions : %empty
 	precondCnt++;
 
 	//todo: hw5
+	$$ = $2;
+    $$->true_list = $2->true_list;
+    $$->false_list = $2->false_list;
 }
 ;
 
@@ -267,6 +269,11 @@ PreCondition : PRECOND LPAREN Exp RPAREN
 	$$ = $3;
 
 	//todo: hw5
+	$$->true_list = $3->true_list;
+	$$->false_list = $3->false_list;
+
+	//m.bpatch($3->true_list,cf.genLabel());
+    //m.bpatch($3->false_list,cf.genLabel());
 }
 ;
 
