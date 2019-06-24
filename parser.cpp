@@ -271,6 +271,7 @@ bool Parser::checkPrototypeOfFunction(string funcID, vector<string> args_types)
     {
         if (!e->isFunc) return false; //not a function - error
         vector<pair<string,string> > declared_types = e->args;
+        reverse(declared_types.begin(),declared_types.end());
         if (declared_types.size() != args_types.size()) return false; //not enough arguments - error
         for (int i=0; i<declared_types.size(); ++i)
         {
