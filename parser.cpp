@@ -332,7 +332,7 @@ void Parser::clearTempRegisters()
     for (int i=8; i<=25; ++i) available_regs[i] = true;
 }
 
-void Parser::getNumOfLocalVariables() {
+int Parser::getNumOfLocalVariables() {
     // this function counts number of local variables on stack
     // get symbol table of current scope
     SymbolTable *current = tables_stack->top();
@@ -347,4 +347,5 @@ void Parser::getNumOfLocalVariables() {
                 cnt++;
         }
     }
+    return cnt;
 }

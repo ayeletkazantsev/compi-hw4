@@ -33,7 +33,12 @@ struct Mips {
     string registers_pool[32]; // we use only 8 to 25
     bool free_registers[32];
 
-    Mips() : cf(CodeBuffer::instance()), commentsIsOn(true) {}
+    Mips() : cf(CodeBuffer::instance()), commentsIsOn(true) {
+        for (int i=0; i<32; ++i) {
+            registers_pool[i] = convert_to_string(i);
+            free_registers[i] = true;
+        }
+    }
 
     void pushToStack(int reg) {
 //        if (commentsIsOn) {
@@ -264,6 +269,11 @@ struct Mips {
             }
             Parser::setRegister(exp->reg, true);
         }
+    }
+
+    void examineExp(YYSTYPE e)
+    {
+        YYSTYPE e1=e;
     }
 
 };

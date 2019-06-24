@@ -65,7 +65,7 @@ namespace Parser {
 
     void clearTempRegisters();
 
-    void getNumOfLocalVariables();
+    int getNumOfLocalVariables();
 }
 
 #endif
