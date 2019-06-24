@@ -40,7 +40,8 @@ LBRACE (\{)
 RBRACE (\})
 ASSIGN (=)
 RELOP (==|!=|<|>|<=|>=)
-BINOP (\+|\-|\*|\/)
+MULDIV (\*|\/)
+ADDSUB (\+|\-)
 ID ([a-zA-Z][a-zA-Z0-9]*)
 NUM (0|[1-9][0-9]*)
 STRING (\"([^\n\r\"\\]|\\[rnt"\\])+\")
@@ -74,7 +75,8 @@ WHITESPACE ([\n\t\f\r\v ])
 {RBRACE} {return RBRACE;}
 {ASSIGN} {return ASSIGN;}
 {RELOP} {yylval = new NameTypeInfo("RELOP",yytext); return RELOP;}
-{BINOP} {yylval = new NameTypeInfo("BINOP",yytext); return BINOP;}
+{MULDIV} {yylval = new NameTypeInfo("MULDIV",yytext); return MULDIV;}
+{ADDSUB} {yylval = new NameTypeInfo("ADDSUB",yytext); return ADDSUB;}
 {ID} {yylval = new NameTypeInfo("ID",yytext); return ID;}
 {NUM} {yylval = new NameTypeInfo("INT",yytext); return NUM;}
 {STRING} {yylval = new NameTypeInfo("STRING",yytext); return STRING;}
