@@ -35,13 +35,13 @@ int string_count = 0;
 %}
 
 
-%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE PRECOND SC COMMA LPAREN RPAREN LBRACE RBRACE RELOP ID NUM STRING END_OF_FILE
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE PRECOND SC COMMA LPAREN RPAREN LBRACE RBRACE ID NUM STRING END_OF_FILE
 
 /* Solving conflicts */
 // Exp rules related conflicts
 %right ASSIGN
-%left  OR //check if needs to be right assoc
 %left AND //check if needs to be right assoc
+%left  OR //check if needs to be right assoc
 %nonassoc RELOP
 %left ADDSUB
 %left MULDIV
@@ -49,7 +49,6 @@ int string_count = 0;
 
 %nonassoc CONFLICT
 %nonassoc ELSE
-
 
 %%
 
