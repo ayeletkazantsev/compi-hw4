@@ -165,7 +165,7 @@ struct Mips {
                 debugPrint("\t pushed saved register $" + convert_to_string(i));
             }
         }
-        //clearTempRegisters(); // todo add assert - all temp registers are free to use
+        //Parser::clearTempRegisters(); // todo add assert - all temp registers are free to use
 
         debugPrint("\t 2. Push caller's fp");
         // 2. Push caller's fp
