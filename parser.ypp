@@ -290,9 +290,7 @@ Statements : Statement
         m.bpatch($1->next_list,cf.genLabel());
 } Statement
 {
-    //cout << "here 2" << endl;
     $$ = $1;
-    //todo check if this is correctS
     $$->next_list = $3->next_list;
     $$->break_list = cf.merge($1->break_list,$3->break_list);
     $$->continue_list = cf.merge($1->continue_list,$3->continue_list);
