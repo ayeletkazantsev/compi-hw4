@@ -35,7 +35,7 @@ int string_count = 0;
 %}
 
 
-%token VOID INT BYTE B BOOL AND OR TRUE FALSE RETURN IF WHILE BREAK CONTINUE PRECOND SC COMMA LPAREN RPAREN LBRACE RBRACE RELOP MULDIV ADDSUB ID NUM STRING ASSIGN END_OF_FILE
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE PRECOND SC COMMA LPAREN RPAREN LBRACE RBRACE RELOP ID NUM STRING END_OF_FILE
 
 /* Solving conflicts */
 // Exp rules related conflicts
@@ -43,8 +43,8 @@ int string_count = 0;
 %left  OR //check if needs to be right assoc
 %left AND //check if needs to be right assoc
 %nonassoc RELOP
-%left MULDIV
 %left ADDSUB
+%left MULDIV
 %right NOT
 
 %nonassoc CONFLICT
@@ -114,19 +114,6 @@ M : %empty
 }
 ;
 
-//HW5:
-NewLabel : %empty
-{
-    $$ = new Type();
-	$$->label = cf.genLabel();
-}
-
-NewNextList : %empty
-{
-    $$ = new Type();
-    $$->next_list = cf.makelist(cf.emit("j  "));
-}
-;
 
 Funcs : %empty | FuncDecl Funcs  //DONE! no need to change
 ;
@@ -202,7 +189,6 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
                 //cf.emit("li $v0, 10"); // Syscall to terminate
                 //cf.emit("syscall");
     }
-
 
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
@@ -306,7 +292,7 @@ Statements : Statement
 {
     //cout << "here 2" << endl;
     $$ = $1;
-    //todo check if this is correct
+    //todo check if this is correctS
     $$->next_list = $3->next_list;
     $$->break_list = cf.merge($1->break_list,$3->break_list);
     $$->continue_list = cf.merge($1->continue_list,$3->continue_list);
@@ -897,6 +883,20 @@ Exp : LPAREN Exp RPAREN
 
 	setRegister($1->reg,true);
 	setRegister($3->reg,true);
+}
+;
+
+//HW5:
+NewLabel : %empty
+{
+    $$ = new Type();
+	$$->label = cf.genLabel();
+}
+
+NewNextList : %empty
+{
+    $$ = new Type();
+    $$->next_list = cf.makelist(cf.emit("j  "));
 }
 ;
 
