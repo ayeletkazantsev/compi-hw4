@@ -64,6 +64,8 @@ namespace Parser {
     bool isRegisterAvailable(int idx);
 
     void clearTempRegisters();
+
+    void getNumOfLocalVariables();
 }
 
 #endif

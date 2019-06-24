@@ -331,3 +331,20 @@ void Parser::clearTempRegisters()
 {
     for (int i=8; i<=25; ++i) available_regs[i] = true;
 }
+
+void Parser::getNumOfLocalVariables() {
+    // this function counts number of local variables on stack
+    // get symbol table of current scope
+    SymbolTable *current = tables_stack->top();
+    vector<SymbolTableEntry *> entries = *current;
+    int cnt = 0;
+
+    // print content of scope
+    for (int i = 0; i < entries.size(); ++i) {
+        SymbolTableEntry *entry = entries[i];
+        if (entry) {
+            if (!entry->isFunc)  // identifier entry
+                cnt++;
+        }
+    }
+}
