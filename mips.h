@@ -242,6 +242,8 @@ struct Mips {
             cf.emit("add $" + convert_to_string(reg) + ", $v0, 0");
             leftSideOfRule->reg = reg;
         }
+
+        Parser::clearTempRegisters();
     }
 
     void assignExpressionToId(string name, YYSTYPE exp, Type* leftSideOfRule, bool firstTime) {
@@ -256,7 +258,7 @@ struct Mips {
             cf.emit("sw $"+ convert_to_string(reg) +"," + convert_to_string((-4) * e->offset) + "($fp)");
             Parser::setRegister(reg,true);
             leftSideOfRule->next_list = cf.makelist(cf.emit("j  "));
-            bpatch(leftSideOfRule->false_list,cf.genLabel());
+            bpatch(exp->false_list,cf.genLabel());
             cf.emit("sw $0," + convert_to_string((-4) * e->offset) + "($fp)");
         }
         else

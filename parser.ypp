@@ -173,6 +173,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
         cout << "DEBUG: end of function scope: " << name << endl;
     }
 
+    //Parser::clearTempRegisters();
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
 } NewLabelPrecond {
@@ -458,8 +459,6 @@ Statement : LBRACE {
 		errorUnexpectedBreak(yylineno);
 		exit(0);
 	}
-
-    whileLoopCnt = 0;
 
 	//HW5
     $$ = new Type();
