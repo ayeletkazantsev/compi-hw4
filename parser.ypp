@@ -526,6 +526,8 @@ SelectionStatement: Statement NewLabel // IF without ELSE
     // HW5
     $$->label = $5->label;
     $$->next_list = cf.merge(cf.merge($1->next_list, $3->next_list), $6->next_list);
+    $$->break_list = cf.merge($1->break_list,$6->break_list);
+    $$->continue_list = cf.merge($1->continue_list,$6->continue_list);
 }
 ;
 
