@@ -39,7 +39,8 @@ RPAREN (\))
 LBRACE (\{)
 RBRACE (\})
 ASSIGN (=)
-RELOP (==|!=|<|>|<=|>=)
+RELOPEQUALITY (==|!=)
+RELOP (<|>|<=|>=)
 MULDIV (\*|\/)
 ADDSUB (\+|\-)
 ID ([a-zA-Z][a-zA-Z0-9]*)
@@ -74,6 +75,7 @@ WHITESPACE ([\n\t\f\r\v ])
 {LBRACE} {return LBRACE;}
 {RBRACE} {return RBRACE;}
 {ASSIGN} {return ASSIGN;}
+{RELOPEQUALITY} {yylval = new NameTypeInfo("RELOP",yytext); return RELOPEQUALITY;}
 {RELOP} {yylval = new NameTypeInfo("RELOP",yytext); return RELOP;}
 {MULDIV} {yylval = new NameTypeInfo("MULDIV",yytext); return MULDIV;}
 {ADDSUB} {yylval = new NameTypeInfo("ADDSUB",yytext); return ADDSUB;}

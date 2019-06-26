@@ -39,16 +39,16 @@ int string_count = 0;
 
 /* Solving conflicts */
 // Exp rules related conflicts
+%nonassoc CONFLICT
+%nonassoc ELSE
 %right ASSIGN
 %left AND //check if needs to be right assoc
 %left  OR //check if needs to be right assoc
+%left RELOPEQUALITY
 %nonassoc RELOP
 %left ADDSUB
 %left MULDIV
 %right NOT
-
-%nonassoc CONFLICT
-%nonassoc ELSE
 
 %%
 
@@ -182,6 +182,8 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
     string name = id->name;
     cf.emitData($13->label + "_precond_str: .asciiz \"Precondition hasn't been satisfied for function " + name + "\\n\"");
+
+    //cout<<"helo world";
 
     m.bpatch($7->true_list,$8->label);
     m.bpatch($7->false_list, $13->label);
@@ -495,6 +497,23 @@ Statement : LBRACE {
     m.bpatch($3->true_list,$5->label);
     m.bpatch($3->false_list,$7->label);
 }
+| IF LPAREN Exp RPAREN NewLabel {
+    if (isDevStage) {
+        cout << "DEBUG: start of if scope" << endl;
+    }
+
+    if (getExpType($3) != "BOOL") {
+        errorMismatch(yylineno);
+        exit(0);
+    }
+
+    openScope();
+} SelectionStatement NewLabel{
+    // HW5
+    $$ = $7;
+    m.bpatch($3->true_list,$5->label);
+    m.bpatch($3->false_list,);
+}
 ;
 
 SelectionStatement: Statement NewLabel // IF without ELSE
@@ -638,7 +657,7 @@ NewExp : Exp
     string expType = getExpType($1);
     //cf.emit("DEBUG: expType is: " + expType);
     int reg;
-    if (expType == "BOOL"){
+    if (expType == "BOOL") {
         reg = getAvailableRegister();
         setRegister(reg,false);
         m.bpatch($1->true_list,cf.genLabel());
@@ -848,6 +867,28 @@ Exp : LPAREN Exp RPAREN
     $$->true_list = cf.merge($1->true_list,$4->true_list);
     $$->false_list = $4->false_list;
 }
+| Exp RELOPEQUALITY Exp
+{
+    string type_right_exp = getExpType($3);
+    string type_left_exp = getExpType($1);
+ 	if (type_right_exp!="INT" && type_right_exp!="BYTE") {errorMismatch(yylineno); exit(0);}
+	if (type_left_exp!="INT" && type_left_exp!="BYTE") {errorMismatch(yylineno); exit(0);}
+	$$ = new Type("BOOL");
+
+    // HW5:
+	NameTypeInfo* relop = dynamic_cast<NameTypeInfo*>($2);
+	string op = relop->name;
+
+    if (op == "==")
+        $$ -> true_list = cf.makelist(cf.emit("beq $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
+    if (op == "!=")
+        $$ -> true_list = cf.makelist(cf.emit("bne $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
+
+	$$->false_list = cf.makelist(cf.emit("j "));
+
+	setRegister($1->reg,true);
+	setRegister($3->reg,true);
+}
 | Exp RELOP Exp
 {
     string type_right_exp = getExpType($3);
@@ -868,11 +909,6 @@ Exp : LPAREN Exp RPAREN
 	    $$->true_list = cf.makelist(cf.emit("bgt $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
 	if (op == ">=")
 	    $$->true_list = cf.makelist(cf.emit("bge $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
-    if (op == "==")
-        $$ -> true_list = cf.makelist(cf.emit("beq $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
-    if (op == "!=")
-        $$ -> true_list = cf.makelist(cf.emit("bne $" + convert_to_string($1->reg) + ", $" + convert_to_string($3->reg) + ",  "));
-
 
 	$$->false_list = cf.makelist(cf.emit("j "));
 
