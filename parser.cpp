@@ -309,6 +309,9 @@ void Parser::initRegisters()
 }
 
 void Parser::setRegister(int idx, bool val) {
+    if (idx < 0 || idx > 24) {
+        return;
+    }
     available_regs[idx] = val;
 }
 

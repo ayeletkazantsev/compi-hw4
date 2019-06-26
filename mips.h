@@ -136,8 +136,8 @@ struct Mips {
 
     void debugPrint(const string &str) {
         if (commentsIsOn)
-//            cout << "# DEBUG: " << str << endl;
-            cf.emit("# DEBUG: " + str);
+            cout << "# DEBUG: " << str << endl;
+//            cf.emit("# DEBUG: " + str);
     }
 
     void functionCall(Type* leftSideOfRule, string name, NameMultiTypeInfo* expList, string returnType) {
@@ -162,7 +162,7 @@ struct Mips {
                 pushToStack(i);
                 backupRegisters.push_back(i);
                 Parser::setRegister(i, true);
-                debugPrint("\t pushed saved register $" + convert_to_string(i));
+                debugPrint("\t AAAA pushed saved register $" + convert_to_string(i));
             }
         }
         //Parser::clearTempRegisters(); // todo add assert - all temp registers are free to use
@@ -222,11 +222,11 @@ struct Mips {
         {
             popFromStack(backupRegisters[i]);
             Parser::setRegister(backupRegisters[i], false);
-            debugPrint("\t popped saved register $" + convert_to_string(backupRegisters[i]));
+            debugPrint("\t AAAA popped saved register $" + convert_to_string(backupRegisters[i]));
         }
 
         //cout << "stack size after is: " << stack.size() << endl;
-
+        //Parser::clearTempRegisters();
         if (returnType == "BOOL"){
             int quad = cf.emit("beq $v0, 0, ");
             leftSideOfRule->true_list = cf.makelist(cf.emit("j "));
@@ -243,16 +243,16 @@ struct Mips {
             leftSideOfRule->reg = reg;
         }
 
-        Parser::clearTempRegisters();
+
     }
 
     void assignExpressionToId(string name, YYSTYPE exp, Type* leftSideOfRule, bool firstTime) {
         string expType = Parser::getExpType(exp);
         SymbolTableEntry* e = Parser::getIdEntry(name,false);
-        int reg = Parser::getAvailableRegister();
-        Parser::setRegister(reg,false);
         if (expType == "BOOL")
         {
+            int reg = Parser::getAvailableRegister();
+            Parser::setRegister(reg,false);
             bpatch(exp->true_list,cf.genLabel());
             cf.emit("li $" + convert_to_string(reg) + ", 1");
             cf.emit("sw $"+ convert_to_string(reg) +"," + convert_to_string((-4) * e->offset) + "($fp)");
@@ -269,7 +269,7 @@ struct Mips {
             else {
                 setOnFrame(exp->reg, e->offset);
             }
-            Parser::setRegister(exp->reg, true);
+
         }
     }
 
