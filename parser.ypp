@@ -156,7 +156,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
     m.debugPrint("Calle's (" + name + ") frame start (FP=SP)");
     cf.emit("subu $fp, $sp, 4"); // set the fp
 
-} PreConditions NewLabel LBRACE Statements RBRACE NewLabel {
+} PreConditions NewLabel LBRACE Statements RBRACE {
 	NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
 	string name = id->name;
     currentReturnType = "";
@@ -173,24 +173,18 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
         cout << "DEBUG: end of function scope: " << name << endl;
     }
 
-    //HW5
-    if ($7) {
-    	m.bpatch($7->true_list,$8->label);
-        m.bpatch($7->false_list, $12->label);
-
-        //todo: add print
-        string label = "precondition_hadnler_for_" + name;
-        cf.emitData(label + "_str: .asciiz \"Precondition hasn't been satisfied for function " + name + "\\n\"");
-        cf.emit(label + ":");
-        cf.emit("la $a0, " + label + "_str");
-        cf.emit("li $v0, 4"); // Syscall to print
-        cf.emit("syscall");
-        cf.emit("li $v0, 10"); // Syscall to terminate
-        cf.emit("syscall");
-    }
-
+    //Parser::clearTempRegisters();
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
+} NewLabelPrecond {
+
+   //HW5
+    NameTypeInfo* id = dynamic_cast<NameTypeInfo*>($2);
+    string name = id->name;
+    cf.emitData($13->label + "_precond_str: .asciiz \"Precondition hasn't been satisfied for function " + name + "\\n\"");
+
+    m.bpatch($7->true_list,$8->label);
+    m.bpatch($7->false_list, $13->label);
 }
 ;
 
@@ -244,12 +238,12 @@ FormalDecl : Type ID
 PreConditions : %empty
 {
 	precondCnt = 0;
+	$$ = new Type();
 }
 | PreConditions NewLabel PreCondition
 {
 	precondCnt++;
 
-    $$ = new Type();
     $$ = $2;
     if (precondCnt > 1) {
         m.bpatch($1->true_list,$2->label);
@@ -269,7 +263,6 @@ PreCondition : PRECOND LPAREN Exp RPAREN
 	    errorMismatch(yylineno);
 	    exit(0);
 	}
-	$$ = new Type();
 	$$ = $3;
 
 	//todo: hw5
@@ -309,18 +302,11 @@ Statement : LBRACE {
     if (isDevStage) {
         cout << "DEBUG: end of block scope" << endl;
     }
-
-    // pop local variable form stack
-    int localVariables = getNumOfLocalVariables();
-    for (int i=0; i<localVariables; ++i)
-        m.popFromStack();
-
     endScope(); // print "end scope" message
     closeScope();
 } RBRACE NewLabel {
     // HW5:
     m.bpatch($3->next_list,$6->label);
-    $$ = new Type();
     $$ = $3;
     $$->next_list = vector<int>();
 }
@@ -363,7 +349,6 @@ Statement : LBRACE {
 	pushIdentifierToStack($1->type,id->name);
 
 	//HW5:
-	$$ = new Type();
 	m.debugPrint("Type ID ASSIGN Exp SC");
     m.assignExpressionToId(name, $4, $$, true);
 
@@ -406,6 +391,7 @@ Statement : LBRACE {
 	$$ = new Type();
 
 	cf.emit("add $sp, $fp, 4"); // move the sp back
+	Parser::clearTempRegisters();
 	m.jump(RA);
 }
 | RETURN Exp SC 
@@ -439,7 +425,7 @@ Statement : LBRACE {
 
     cf.emit("add $sp, $fp, 4"); // move the sp back
     m.jump(RA);
-    $$ = new Type();
+    Parser::clearTempRegisters();
     $$ = $2;
 }
 | WHILE LPAREN NewLabel Exp RPAREN {
@@ -476,8 +462,6 @@ Statement : LBRACE {
 		exit(0);
 	}
 
-    whileLoopCnt = 0;
-
 	//HW5
     $$ = new Type();
     $$->break_list = cf.makelist(cf.emit("j "));
@@ -507,7 +491,6 @@ Statement : LBRACE {
     openScope();
 } SelectionStatement NewLabel{
     // HW5
-    $$ = new Type();
     $$ = $7;
     m.bpatch($3->true_list,$5->label);
     m.bpatch($3->false_list,$7->label);
@@ -523,7 +506,6 @@ SelectionStatement: Statement NewLabel // IF without ELSE
     closeScope();
 
     // HW5
-    $$ = new Type();
     $$ = $1;
     $$->label = $2->label;
     $$->next_list = $1->next_list;
@@ -543,9 +525,10 @@ SelectionStatement: Statement NewLabel // IF without ELSE
     closeScope();
 
     // HW5
-    $$ = new Type();
     $$->label = $5->label;
     $$->next_list = cf.merge(cf.merge($1->next_list, $3->next_list), $6->next_list);
+    $$->break_list = cf.merge($1->break_list,$6->break_list);
+    $$->continue_list = cf.merge($1->continue_list,$6->continue_list);
 }
 ;
 
@@ -775,7 +758,6 @@ Exp : LPAREN Exp RPAREN
 }
 | Call
 {
-	$$ = new Type();
 	$$ = $1;
 }
 | NUM
@@ -913,6 +895,20 @@ NewNextList : %empty
 }
 ;
 
+NewLabelPrecond : %empty
+{
+    $$ = new Type();
+	$$->label = cf.genLabel();
+    string label = $$->label + "_precond_str";
+
+    if (precondCnt > 0) {
+        cf.emit("la $a0, " + label);
+        cf.emit("li $v0, 4"); // Syscall to print
+        cf.emit("syscall");
+        cf.emit("li $v0, 10"); // Syscall to terminate
+        cf.emit("syscall");
+    }
+}
 %%
 
 void yyerror(const char * message)
