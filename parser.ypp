@@ -173,7 +173,7 @@ FuncDecl : RetType ID LPAREN Formals RPAREN
         cout << "DEBUG: end of function scope: " << name << endl;
     }
 
-    //Parser::clearTempRegisters();
+    Parser::clearTempRegisters();
     cf.emit("add $sp, $fp, 4"); // move the sp back
     cf.emit("jr $ra");
 } NewLabelPrecond {
@@ -276,17 +276,24 @@ PreCondition : PRECOND LPAREN Exp RPAREN
 Statements : Statement
 {
     $$ = $1;
+
 }
 | Statements
 {
     if ($1->next_list.size() > 0)
         m.bpatch($1->next_list,cf.genLabel());
+
 } Statement
 {
     $$ = $1;
     $$->next_list = $3->next_list;
     $$->break_list = cf.merge($1->break_list,$3->break_list);
     $$->continue_list = cf.merge($1->continue_list,$3->continue_list);
+
+
+
+
+
 }
 ;
 
@@ -350,6 +357,9 @@ Statement : LBRACE {
 	//HW5:
 	m.debugPrint("Type ID ASSIGN Exp SC");
     m.assignExpressionToId(name, $4, $$, true);
+    setRegister($$->reg ,true);
+
+
 }
 | ID ASSIGN Exp SC
 {
@@ -374,7 +384,7 @@ Statement : LBRACE {
 | Call SC
 {
     // HW5:
-    $$ = new Type();
+    $$ = $1;
     setRegister($1->reg,true);
     $$->next_list = cf.merge($1->true_list,$1->false_list);
 }
@@ -388,8 +398,8 @@ Statement : LBRACE {
 
 	$$ = new Type();
 
+    Parser::clearTempRegisters();
 	cf.emit("add $sp, $fp, 4"); // move the sp back
-	Parser::clearTempRegisters();
 	m.jump(RA);
 }
 | RETURN Exp SC 
@@ -421,9 +431,9 @@ Statement : LBRACE {
         cf.emit("add $v0, $" + convert_to_string($2->reg) + ", 0");
     }
 
+    Parser::clearTempRegisters();
     cf.emit("add $sp, $fp, 4"); // move the sp back
     m.jump(RA);
-    Parser::clearTempRegisters();
     $$ = $2;
 }
 | WHILE LPAREN NewLabel Exp RPAREN {
@@ -757,6 +767,7 @@ Exp : LPAREN Exp RPAREN
 | Call
 {
 	$$ = $1;
+	// don't free up $1-reg as it may used (fibonance test won't work)
 }
 | NUM
 {
