@@ -50,9 +50,6 @@ int string_count = 0;
 %left MULDIV
 %right NOT
 
-%nonassoc CONFLICT
-%nonassoc ELSE
-
 %%
 
 Program : M Funcs END_OF_FILE
@@ -501,7 +498,7 @@ Statement : LBRACE {
 }
 ;
 
-SelectionStatement: Statement NewLabel // IF without ELSE
+SelectionStatement: Statement // IF without ELSE
 {
     if (isDevStage) {
         cout << "DEBUG: end of if scope" << endl;
@@ -511,7 +508,7 @@ SelectionStatement: Statement NewLabel // IF without ELSE
 
     // HW5
     $$ = $1;
-    $$->label = $2->label;
+    $$->label = cf.genLabel();
     $$->next_list = $1->next_list;
 } %prec CONFLICT
 | Statement ELSE NewNextList// IF with ELSE
